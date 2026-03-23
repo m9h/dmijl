@@ -12,8 +12,10 @@ end
 
 """Pearson correlation coefficient."""
 function pearson_r(x::AbstractVector, y::AbstractVector)
+    n = length(x)
     mx, my = mean(x), mean(y)
-    sx, sy = std(x), std(y)
+    sx = sqrt(sum((x .- mx).^2) / n)
+    sy = sqrt(sum((y .- my).^2) / n)
     (sx == 0 || sy == 0) && return 0.0
     return mean((x .- mx) .* (y .- my)) / (sx * sy)
 end
