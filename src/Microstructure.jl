@@ -50,6 +50,10 @@ export train_score!
 include("diffusion/sample.jl")
 export sample_posterior
 
+# ---- Bloch-Torrey neural surrogate / PINN ----
+include("pinn/bloch_torrey.jl")
+export build_surrogate, train_surrogate!, BlochTorreyResidual
+
 # ---- Evaluation ----
 include("validation/metrics.jl")
 export angular_error_deg, pearson_r, rmse, evaluate_ball2stick
