@@ -54,6 +54,10 @@ export sample_posterior
 include("pinn/bloch_torrey.jl")
 export build_surrogate, train_surrogate!, BlochTorreyResidual
 
+# ---- Surrogate-accelerated SBI pipeline ----
+include("pipeline/surrogate_sbi.jl")
+export train_surrogate_sbi
+
 # ---- Evaluation ----
 include("validation/metrics.jl")
 export angular_error_deg, pearson_r, rmse, evaluate_ball2stick
