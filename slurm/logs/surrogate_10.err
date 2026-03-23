@@ -1,1 +1,1 @@
-slurmstepd-gx10-dgx-spark: error: *** JOB 57 ON gx10-dgx-spark CANCELLED AT 2026-03-23T11:52:51 ***
+slurmstepd-gx10-dgx-spark: error: *** JOB 78 ON gx10-dgx-spark CANCELLED AT 2026-03-23T13:25:31 DUE TO TIME LIMIT ***

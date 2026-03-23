@@ -1,2 +1,14 @@
 Running experiment 9 on gx10-dgx-spark
-Start: Mon Mar 23 11:38:16 AM PDT 2026
+Start: Mon Mar 23 12:25:17 PM PDT 2026
+============================================================
+Experiment 9: h512_d6_rel_50k
+  hidden=512 depth=6 lr=0.001 steps=50000 loss=relative_mse
+============================================================
+
+Results: h512_d6_rel_50k
+  Median relative error: 93.65%
+  Samples <1% error:    0.0%
+  Samples <5% error:    0.0%
+  Train time: 3028s
+  SPEC #1 not yet passed
+End: Mon Mar 23 01:15:51 PM PDT 2026
