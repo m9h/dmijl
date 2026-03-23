@@ -1,0 +1,14 @@
+Running experiment 1 on gx10-dgx-spark
+Start: Mon Mar 23 11:38:16 AM PDT 2026
+============================================================
+Experiment 1: h256_d6_rel
+  hidden=256 depth=6 lr=0.001 steps=10000 loss=relative_mse
+============================================================
+
+Results: h256_d6_rel
+  Median relative error: 2.32%
+  Samples <1% error:    2.4%
+  Samples <5% error:    94.6%
+  Train time: 527s
+  SPEC #1 not yet passed
+End: Mon Mar 23 11:47:09 AM PDT 2026

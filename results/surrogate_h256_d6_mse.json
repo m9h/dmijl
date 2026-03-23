@@ -1,0 +1,16 @@
+{
+  "mean_rel_error": 0.0280770473331213,
+  "lr": 0.001,
+  "final_loss": 0.000301017687888816,
+  "depth": 6,
+  "name": "h256_d6_mse",
+  "train_time_s": 261.99335289001465,
+  "pct_under_5pct": 89.7,
+  "pct_under_1pct": 11.0,
+  "hidden_dim": 256,
+  "loss_type": "mse",
+  "median_rel_error": 0.024892574176192284,
+  "experiment_id": 3,
+  "spec1_passed": false,
+  "n_steps": 10000
+}

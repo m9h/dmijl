@@ -1,0 +1,7 @@
+[ Info: [Surrogate] step 1/10000  loss=0.07826  (0.0 steps/s)
+[ Info: [Surrogate] step 2000/10000  loss=0.0006972  (35.0 steps/s)
+[ Info: [Surrogate] step 4000/10000  loss=0.000455  (37.0 steps/s)
+[ Info: [Surrogate] step 6000/10000  loss=0.0003493  (39.0 steps/s)
+[ Info: [Surrogate] step 8000/10000  loss=0.0004174  (38.0 steps/s)
+[ Info: [Surrogate] step 10000/10000  loss=0.000301  (39.0 steps/s)
+[ Info: [Surrogate] Done. 10000 steps in 253.4s

@@ -1,0 +1,16 @@
+{
+  "mean_rel_error": 0.03049568026093766,
+  "lr": 0.001,
+  "final_loss": 0.0013003359781578183,
+  "depth": 6,
+  "name": "h256_d6_logcosh",
+  "train_time_s": 521.2065811157227,
+  "pct_under_5pct": 86.1,
+  "pct_under_1pct": 7.7,
+  "hidden_dim": 256,
+  "loss_type": "log_cosh",
+  "median_rel_error": 0.026691852137446404,
+  "experiment_id": 2,
+  "spec1_passed": false,
+  "n_steps": 10000
+}

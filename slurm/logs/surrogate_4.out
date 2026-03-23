@@ -1,0 +1,14 @@
+Running experiment 4 on gx10-dgx-spark
+Start: Mon Mar 23 11:38:16 AM PDT 2026
+============================================================
+Experiment 4: h512_d6_rel
+  hidden=512 depth=6 lr=0.001 steps=10000 loss=relative_mse
+============================================================
+
+Results: h512_d6_rel
+  Median relative error: 93.78%
+  Samples <1% error:    0.0%
+  Samples <5% error:    0.0%
+  Train time: 659s
+  SPEC #1 not yet passed
+End: Mon Mar 23 11:49:20 AM PDT 2026

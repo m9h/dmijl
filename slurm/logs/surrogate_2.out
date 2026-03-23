@@ -1,0 +1,14 @@
+Running experiment 2 on gx10-dgx-spark
+Start: Mon Mar 23 11:38:16 AM PDT 2026
+============================================================
+Experiment 2: h256_d6_logcosh
+  hidden=256 depth=6 lr=0.001 steps=10000 loss=log_cosh
+============================================================
+
+Results: h256_d6_logcosh
+  Median relative error: 2.67%
+  Samples <1% error:    7.7%
+  Samples <5% error:    86.1%
+  Train time: 521s
+  SPEC #1 not yet passed
+End: Mon Mar 23 11:47:03 AM PDT 2026

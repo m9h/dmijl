@@ -64,6 +64,7 @@ function train_surrogate!(
     batch_size::Int = 512,
     learning_rate::Float64 = 1e-3,
     print_every::Int = 1000,
+    loss_type::Symbol = :log_cosh,
 )
     opt_state = Optimisers.setup(Adam(learning_rate), ps)
     rng = Random.default_rng()
@@ -74,13 +75,20 @@ function train_surrogate!(
     for step in 1:n_steps
         # Generate training batch from reference simulator
         params_batch, signals_batch = data_fn(rng, batch_size)
-        # params_batch: (param_dim, batch_size)
-        # signals_batch: (signal_dim, batch_size)
 
         # Compute loss and gradients
         (loss, st), grads = Zygote.withgradient(ps) do p
             pred, new_st = model(params_batch, p, st)
-            l = mean((pred .- signals_batch).^2)
+            if loss_type == :log_cosh
+                # Log-cosh loss: smooth L1, better for relative errors
+                diff = pred .- signals_batch
+                l = mean(log.(cosh.(diff .* 10.0f0)) ./ 10.0f0)
+            elseif loss_type == :relative_mse
+                # Relative MSE: upweights low-signal regions
+                l = mean(((pred .- signals_batch) ./ max.(signals_batch, 0.01f0)).^2)
+            else
+                l = mean((pred .- signals_batch).^2)
+            end
             return l, new_st
         end
 

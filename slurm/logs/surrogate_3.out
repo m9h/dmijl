@@ -1,0 +1,14 @@
+Running experiment 3 on gx10-dgx-spark
+Start: Mon Mar 23 11:38:16 AM PDT 2026
+============================================================
+Experiment 3: h256_d6_mse
+  hidden=256 depth=6 lr=0.001 steps=10000 loss=mse
+============================================================
+
+Results: h256_d6_mse
+  Median relative error: 2.49%
+  Samples <1% error:    11.0%
+  Samples <5% error:    89.7%
+  Train time: 262s
+  SPEC #1 not yet passed
+End: Mon Mar 23 11:42:42 AM PDT 2026
