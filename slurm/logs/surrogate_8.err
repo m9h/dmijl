@@ -1,0 +1,7 @@
+[ Info: [Surrogate] step 1/50000  loss=25.99  (0.0 steps/s)
+[ Info: [Surrogate] step 10000/50000  loss=0.001648  (20.0 steps/s)
+[ Info: [Surrogate] step 20000/50000  loss=0.0009018  (20.0 steps/s)
+[ Info: [Surrogate] step 30000/50000  loss=0.0006098  (20.0 steps/s)
+[ Info: [Surrogate] step 40000/50000  loss=0.0004585  (20.0 steps/s)
+[ Info: [Surrogate] step 50000/50000  loss=0.001637  (20.0 steps/s)
+[ Info: [Surrogate] Done. 50000 steps in 2457.8s
