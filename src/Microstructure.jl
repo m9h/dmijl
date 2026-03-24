@@ -50,6 +50,9 @@ export train_score!
 include("diffusion/sample.jl")
 export sample_posterior
 
+include("diffusion/sample_diffeq.jl")
+export sample_posterior_diffeq, sample_posterior_ode
+
 # ---- Bloch-Torrey neural surrogate / PINN ----
 include("pinn/bloch_torrey.jl")
 export build_surrogate, train_surrogate!, BlochTorreyResidual
