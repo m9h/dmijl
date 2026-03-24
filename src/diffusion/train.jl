@@ -1,14 +1,17 @@
 """
 Training loop for denoising score matching.
 
-No XLA compilation — Julia JIT compiles incrementally.
+No XLA compilation -- Julia JIT compiles incrementally.
 Each training step is fast from step 1.
+
+Now uses the unified ScoreNetwork with batched forward passes
+instead of per-sample loops.
 """
 
 using Optimisers, Zygote
 
 function train_score!(
-    model, ps, st;
+    model::ScoreNetwork, ps, st;
     simulator_fn,        # (rng, theta_norm) -> signals
     prior_fn,            # (rng, n) -> theta_norm
     schedule::VPSchedule = VPSchedule(),
@@ -45,21 +48,12 @@ function train_score!(
             target = eps
         end
 
-        # Gradient step
+        # Gradient step -- batched forward pass through ScoreNetwork
         (loss, st), grads = Zygote.withgradient(ps) do p
-            pred_batch = similar(theta)
-            current_st = st
-            for j in 1:batch_size
-                pred_j, current_st = score_forward(
-                    model, p, current_st,
-                    @view(theta_t[:, j]),
-                    t_batch[1, j],
-                    @view(signal[:, j]),
-                )
-                pred_batch[:, j] = pred_j
-            end
+            x = (; theta_t = theta_t, t = t_batch, signal = signal)
+            pred_batch, new_st = model(x, p, st)
             loss = mean((pred_batch .- target).^2)
-            return loss, current_st
+            return loss, new_st
         end
 
         opt_state, ps = Optimisers.update(opt_state, ps, grads[1])

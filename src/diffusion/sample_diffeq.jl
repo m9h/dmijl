@@ -6,6 +6,14 @@ that support adaptive stepping and error control.
 
 This is Julia's key advantage: the reverse SDE is a first-class
 mathematical object, not a hand-coded loop.
+
+The `score_fn` closure should wrap a ScoreNetwork. Build it as:
+
+    score_fn = (theta, t, signal) -> begin
+        x = (; theta_t = theta, t = t, signal = signal)
+        out, _ = model(x, ps, st)
+        return out
+    end
 """
 
 using DifferentialEquations, LinearAlgebra, Random
@@ -18,12 +26,19 @@ using DifferentialEquations, LinearAlgebra, Random
 
 Draw posterior samples by solving the reverse-time SDE:
 
-    dθ = [-½β(t)θ - β(t)·score(θ,t,signal)] dt + √β(t) dW̄
+    dtheta = [-1/2 beta(t) theta - beta(t) score(theta,t,signal)] dt + sqrt(beta(t)) dW_bar
 
 using DifferentialEquations.jl solvers.
 
 `score_fn(theta, t, signal)` should return the noise prediction
-(or v-prediction, depending on `prediction`).
+(or v-prediction, depending on `prediction`). This is typically
+a closure wrapping a `ScoreNetwork`:
+
+    score_fn = (theta, t, signal) -> begin
+        x = (; theta_t = theta, t = t, signal = signal)
+        out, _ = model(x, ps, st)
+        return out
+    end
 """
 function sample_posterior_diffeq(
     score_fn,                  # (theta, t, signal) -> prediction
@@ -47,8 +62,8 @@ function sample_posterior_diffeq(
 
         # Reverse-time SDE drift
         function drift!(du, u, p, t)
-            # Reverse time: we solve from t=1 to t=0
-            # In forward time coordinates: τ = 1 - t
+            # Reverse time: we solve from t=0 to t=1
+            # In forward time coordinates: tau = 1 - t
             tau = 1.0 - t
 
             # Get score from noise prediction
@@ -78,7 +93,7 @@ function sample_posterior_diffeq(
             du .= sqrt(beta_t)
         end
 
-        # Solve from t=0 (which is τ=1, pure noise) to t=1 (which is τ=0, clean)
+        # Solve from t=0 (which is tau=1, pure noise) to t=1 (which is tau=0, clean)
         tspan = (0.0, 1.0 - 1e-4)
         prob = SDEProblem(drift!, diffusion!, theta_T, tspan)
         sol = solve(prob, solver; dt=dt, save_everystep=false)
@@ -106,7 +121,10 @@ end
     sample_posterior_ode(score_fn, signal, schedule; ...)
 
 Probability flow ODE (deterministic) using DifferentialEquations.jl.
-No stochasticity — useful for MAP estimation and likelihood computation.
+No stochasticity -- useful for MAP estimation and likelihood computation.
+
+`score_fn` should be a closure wrapping a `ScoreNetwork` (see
+`sample_posterior_diffeq` docstring for the expected signature).
 """
 function sample_posterior_ode(
     score_fn,
@@ -145,7 +163,7 @@ function sample_posterior_ode(
             score = -eps_pred ./ max(sqrt_1m_ab, 1e-8)
 
             beta_t = beta(schedule, tau)
-            # Probability flow ODE: drift = f(x,t) - ½g²(t)score
+            # Probability flow ODE: drift = f(x,t) - 1/2 g^2(t) score
             du .= -0.5 .* beta_t .* (u .+ score)
         end
 

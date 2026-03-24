@@ -2,7 +2,8 @@
 """
 Ball+2Stick score-based posterior estimation.
 
-Direct port of the JAX implementation — but with no XLA compilation wall.
+Uses FiLM-conditioned ScoreNetwork as a proper Lux model.
+Direct port of the JAX implementation -- but with no XLA compilation wall.
 """
 
 using Pkg
@@ -78,34 +79,37 @@ function sim_fn(rng, theta_norm)
     return noisy ./ b0_mean
 end
 
-# --- Build network ---
-println("Building score network...")
-model_spec = build_score_net(
+# --- Build unified FiLM-conditioned score network ---
+println("Building FiLM-conditioned ScoreNetwork...")
+model = build_score_net(
     param_dim=10, signal_dim=n_meas,
     hidden_dim=512, depth=6, cond_dim=128,
 )
+println("  Type: $(typeof(model))")
 
 # Initialize with Lux
-lux_model = Lux.Chain(
-    signal_encoder = model_spec.signal_encoder,
-    time_encoder = model_spec.time_encoder,
-    input_proj = model_spec.input_proj,
-    output_proj = model_spec.output_proj,
-)
+ps, st = Lux.setup(rng, model)
+println("  Parameters initialized via Lux.setup")
 
-# For the prototype, use the Lux-initialized params
-ps_lux, st_lux = Lux.setup(rng, lux_model)
-
-println("Note: Full training loop requires Lux-compatible FiLM blocks.")
-println("This example validates the forward model + noise pipeline.")
-
-# Test forward model
-println("\n--- Testing forward model ---")
+# Test forward pass
+println("\n--- Testing forward pass ---")
 theta_test = sample_prior(rng, 5)
 signals_test = sim_fn(rng, theta_test)
-println("Theta shape: ", size(theta_test))
-println("Signal shape: ", size(signals_test))
-println("Signal range: ", extrema(signals_test))
+println("  Theta shape: ", size(theta_test))
+println("  Signal shape: ", size(signals_test))
+println("  Signal range: ", extrema(signals_test))
 
-println("\nMicrostructure.jl scaffold ready.")
-println("Next: wire up FiLM blocks as custom Lux layers.")
+# Batched forward pass through the ScoreNetwork
+t_test = rand(rng, Float32, 1, 5) .* 0.9999f0 .+ 1f-5
+x_test = (; theta_t = theta_test, t = t_test, signal = signals_test)
+out_test, st = model(x_test, ps, st)
+println("  Score output shape: ", size(out_test))
+println("  Score output range: ", extrema(out_test))
+
+# Single-sample forward pass (backward compat via score_forward)
+out_single, st = score_forward(model, ps, st,
+    theta_test[:, 1], t_test[1, 1], signals_test[:, 1])
+println("  Single-sample output shape: ", size(out_single))
+
+println("\nFiLM-conditioned ScoreNetwork ready for training.")
+println("Run train_score!(model, ps, st; ...) to start training.")

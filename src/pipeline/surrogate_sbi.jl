@@ -101,13 +101,11 @@ function train_surrogate_sbi(;
 
     schedule = VPSchedule()
 
-    score_net_spec = build_score_net(
+    score_net = build_score_net(
         param_dim=param_dim, signal_dim=signal_dim,
         hidden_dim=score_hidden, depth=score_depth,
     )
-    # Initialize — but build_score_net returns NamedTuple, need Lux model
-    # For now use the Chain-based approach from score_net.jl
-    # TODO: wire up FiLM blocks properly in Lux
+    score_ps, score_st = Lux.setup(rng, score_net)
 
     # Fast surrogate-based data generator
     function surrogate_data_fn(rng, n)
@@ -149,6 +147,7 @@ function train_surrogate_sbi(;
     println("  Surrogate:  $(round(t_surrogate * 1000, digits=1))ms")
 
     return (;
+        score_net, score_ps, score_st,
         surrogate, surr_ps, surr_st, surr_losses,
         schedule,
         surrogate_data_fn, analytical_data_fn,

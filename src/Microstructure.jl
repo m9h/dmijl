@@ -42,6 +42,7 @@ include("diffusion/schedule.jl")
 export VPSchedule, alpha_bar, noise_and_signal
 
 include("diffusion/score_net.jl")
+export SinusoidalEmbedding, FiLMLayer, ConditioningNet, ScoreNetwork
 export build_score_net, score_forward
 
 include("diffusion/train.jl")
@@ -55,7 +56,13 @@ export sample_posterior_diffeq, sample_posterior_ode
 
 # ---- Bloch-Torrey neural surrogate / PINN ----
 include("pinn/bloch_torrey.jl")
-export build_surrogate, train_surrogate!, BlochTorreyResidual
+export build_surrogate, train_surrogate!, BlochTorreyResidual, pde_loss, train_pinn!
+
+# ---- MCMRSimulator training data generation ----
+include("pipeline/mcmr_generator.jl")
+export MCMRGeometry, generate_mcmr_training_data,
+       sample_cylinder_geometry, sample_sphere_geometry,
+       mcmr_data_fn
 
 # ---- Surrogate-accelerated SBI pipeline ----
 include("pipeline/surrogate_sbi.jl")
