@@ -255,7 +255,7 @@ include("../src/diffusion/score_net.jl")
         out1, _ = model((; theta_t, t = t_val, signal = sig1), ps, st)
         out2, _ = model((; theta_t, t = t_val, signal = sig2), ps, st)
 
-        @test !(out1 ≈ out2 atol=1e-6)
+        @test !isapprox(out1, out2; atol=1e-6)
     end
 
     @testset "Different timesteps produce different scores" begin
@@ -274,6 +274,6 @@ include("../src/diffusion/score_net.jl")
         out_t0, _ = model((; theta_t, t = Float32(0.01), signal = signal), ps, st)
         out_t1, _ = model((; theta_t, t = Float32(0.99), signal = signal), ps, st)
 
-        @test !(out_t0 ≈ out_t1 atol=1e-6)
+        @test !isapprox(out_t0, out_t1; atol=1e-6)
     end
 end

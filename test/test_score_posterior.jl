@@ -56,8 +56,8 @@ include("../src/validation/metrics.jl")
         )
         ps, st = Lux.setup(rng, model)
 
-        # Fake observed signal
-        signal = randn(rng, Float32, signal_dim, 1)
+        # Fake observed signal (must be a vector, not matrix)
+        signal = randn(rng, Float32, signal_dim)
 
         samples = sample_posterior(
             model, ps, st, signal;
@@ -105,7 +105,7 @@ include("../src/validation/metrics.jl")
             cond_dim = 16,
         )
         ps, st = Lux.setup(rng, model)
-        signal = randn(rng, Float32, signal_dim, 1)
+        signal = randn(rng, Float32, signal_dim)
 
         samples = sample_posterior(
             model, ps, st, signal;
