@@ -65,4 +65,7 @@ export train_surrogate_sbi
 include("validation/metrics.jl")
 export angular_error_deg, pearson_r, rmse, evaluate_ball2stick
 
+include("validation/koma_oracle.jl")
+export validate_free_diffusion_koma, validate_signal_properties_koma
+
 end # module
