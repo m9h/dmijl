@@ -1,15 +1,18 @@
 """
 Tests for score-based posterior estimation.
 
-TDD: define what "working" means before implementing.
+Updated to use the new ScoreNetwork (FiLM-conditioned Lux layers) API.
 """
 
 using Test, Random, Statistics, LinearAlgebra
+using Lux, Zygote, Optimisers
 
 include("../src/models/ball_stick.jl")
 include("../src/pipeline/acquisition.jl")
 include("../src/noise.jl")
 include("../src/diffusion/schedule.jl")
+include("../src/diffusion/score_net.jl")
+include("../src/diffusion/sample.jl")
 include("../src/validation/metrics.jl")
 
 @testset "Score Posterior" begin
@@ -17,20 +20,20 @@ include("../src/validation/metrics.jl")
     @testset "VP schedule properties" begin
         s = VPSchedule(0.01, 5.0)
 
-        # ᾱ(0) ≈ 1 (no noise at t=0)
+        # alpha_bar(0) ≈ 1 (no noise at t=0)
         @test alpha_bar(s, 0.0) ≈ 1.0 atol=1e-6
 
-        # ᾱ(1) < ᾱ(0) (noise increases with t)
+        # alpha_bar(1) < alpha_bar(0) (noise increases with t)
         @test alpha_bar(s, 1.0) < alpha_bar(s, 0.0)
 
-        # ᾱ is monotonically decreasing
+        # alpha_bar is monotonically decreasing
         ts = range(0, 1, length=100)
-        abs = [alpha_bar(s, t) for t in ts]
-        for i in 2:length(abs)
-            @test abs[i] <= abs[i-1] + 1e-10
+        abs_vals = [alpha_bar(s, t) for t in ts]
+        for i in 2:length(abs_vals)
+            @test abs_vals[i] <= abs_vals[i-1] + 1e-10
         end
 
-        # noise_and_signal: signal² + noise² = 1
+        # noise_and_signal: signal^2 + noise^2 = 1
         for t in [0.0, 0.1, 0.5, 0.9, 1.0]
             sig, noi = noise_and_signal(s, t)
             @test sig^2 + noi^2 ≈ 1.0 atol=1e-6
@@ -38,13 +41,34 @@ include("../src/validation/metrics.jl")
     end
 
     @testset "Posterior samples have correct shape" begin
-        @test_skip begin
-            # After training, sample_posterior should return (param_dim, n_samples)
-            # net, ps, st = train_score!(...)
-            # samples = sample_posterior(net, ps, st, signal; n_samples=100)
-            # @test size(samples) == (10, 100)
-            true
-        end
+        # Build a small ScoreNetwork and run sample_posterior
+        rng = MersenneTwister(42)
+        param_dim = 10
+        signal_dim = 8
+        n_samples = 5
+
+        model = build_score_net(;
+            param_dim = param_dim,
+            signal_dim = signal_dim,
+            hidden_dim = 16,
+            depth = 3,
+            cond_dim = 16,
+        )
+        ps, st = Lux.setup(rng, model)
+
+        # Fake observed signal
+        signal = randn(rng, Float32, signal_dim, 1)
+
+        samples = sample_posterior(
+            model, ps, st, signal;
+            n_samples = n_samples,
+            n_steps = 5,       # minimal steps for speed
+            n_scalars = 4,
+            n_vectors = 2,
+        )
+
+        @test size(samples) == (param_dim, n_samples)
+        @test all(isfinite, samples)
     end
 
     @testset "Posterior concentrates around truth (easy case)" begin
@@ -52,6 +76,7 @@ include("../src/validation/metrics.jl")
         # within 10% of the true parameters for scalar params.
 
         @test_skip begin
+            # Requires trained network -- skipped for CI speed
             # sim = build_simulator(snr=100)
             # net = train(sim, n_steps=50_000)
             # theta_true, signal = sample_and_simulate(sim, 1)
@@ -66,16 +91,36 @@ include("../src/validation/metrics.jl")
     end
 
     @testset "Orientation posterior on unit sphere" begin
-        # SPEC: Orientation samples should be unit vectors
-        @test_skip begin
-            # samples = sample_posterior(...)
-            # for j in 1:n_samples
-            #     mu1 = samples[5:7, j]
-            #     @test norm(mu1) ≈ 1.0 atol=1e-4
-            #     mu2 = samples[8:10, j]
-            #     @test norm(mu2) ≈ 1.0 atol=1e-4
-            # end
-            true
+        # After sample_posterior, orientation vectors should be unit vectors
+        rng = MersenneTwister(99)
+        param_dim = 10
+        signal_dim = 8
+        n_samples = 5
+
+        model = build_score_net(;
+            param_dim = param_dim,
+            signal_dim = signal_dim,
+            hidden_dim = 16,
+            depth = 3,
+            cond_dim = 16,
+        )
+        ps, st = Lux.setup(rng, model)
+        signal = randn(rng, Float32, signal_dim, 1)
+
+        samples = sample_posterior(
+            model, ps, st, signal;
+            n_samples = n_samples,
+            n_steps = 5,
+            n_scalars = 4,
+            n_vectors = 2,
+        )
+
+        # Orientation vectors (indices 5:7 and 8:10) should be unit norm
+        for j in 1:n_samples
+            mu1 = samples[5:7, j]
+            @test norm(mu1) ≈ 1.0 atol=1e-4
+            mu2 = samples[8:10, j]
+            @test norm(mu2) ≈ 1.0 atol=1e-4
         end
     end
 
@@ -83,7 +128,7 @@ include("../src/validation/metrics.jl")
         # Test that evaluation metrics work correctly
         rng = MersenneTwister(42)
 
-        # Perfect predictions → zero error
+        # Perfect predictions -> zero error
         theta = randn(rng, 10, 50)
         # Normalize orientations
         for j in 1:50
@@ -100,16 +145,16 @@ include("../src/validation/metrics.jl")
     end
 
     @testset "Angular error properties" begin
-        # Parallel vectors → 0°
+        # Parallel vectors -> 0 degrees
         @test angular_error_deg([1.0, 0.0, 0.0], [1.0, 0.0, 0.0]) ≈ 0.0 atol=1e-10
 
-        # Antipodal vectors → 0° (we use abs(dot))
+        # Antipodal vectors -> 0 degrees (we use abs(dot))
         @test angular_error_deg([1.0, 0.0, 0.0], [-1.0, 0.0, 0.0]) ≈ 0.0 atol=1e-10
 
-        # Perpendicular → 90°
+        # Perpendicular -> 90 degrees
         @test angular_error_deg([1.0, 0.0, 0.0], [0.0, 1.0, 0.0]) ≈ 90.0 atol=1e-10
 
-        # 45° angle
+        # 45 degree angle
         v = [1.0, 1.0, 0.0] / sqrt(2)
         @test angular_error_deg([1.0, 0.0, 0.0], v) ≈ 45.0 atol=1e-6
     end

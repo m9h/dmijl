@@ -107,12 +107,17 @@ function train_surrogate_sbi(;
     )
     score_ps, score_st = Lux.setup(rng, score_net)
 
-    # Fast surrogate-based data generator
-    function surrogate_data_fn(rng, n)
-        params_norm = rand(rng, Float32, param_dim, n)
+    # Prior: sample normalized parameters from uniform [0, 1]
+    function prior_fn(rng, n)
+        return rand(rng, Float32, param_dim, n)
+    end
+
+    # Surrogate-based simulator (fast!)
+    function simulator_fn(rng, theta_norm)
+        n = size(theta_norm, 2)
 
         # Surrogate forward pass (fast!)
-        signals_clean, _ = surrogate(params_norm, surr_ps, surr_st)
+        signals_clean, _ = surrogate(theta_norm, surr_ps, surr_st)
 
         # Add noise (same as analytical pipeline)
         if noise_type == :rician && snr_range !== nothing
@@ -135,7 +140,14 @@ function train_surrogate_sbi(;
             noisy = noisy ./ b0_mean
         end
 
-        return params_norm, noisy
+        return noisy
+    end
+
+    # Combined data function for backward compatibility
+    function surrogate_data_fn(rng, n)
+        theta = prior_fn(rng, n)
+        signals = simulator_fn(rng, theta)
+        return theta, signals
     end
 
     # Benchmark: surrogate vs analytical speed
@@ -146,11 +158,26 @@ function train_surrogate_sbi(;
     println("  Analytical: $(round(t_analytical * 1000, digits=1))ms")
     println("  Surrogate:  $(round(t_surrogate * 1000, digits=1))ms")
 
+    # Train score posterior using surrogate as forward model
+    score_ps, score_st, score_losses = train_score!(
+        score_net, score_ps, score_st;
+        simulator_fn = simulator_fn,
+        prior_fn = prior_fn,
+        schedule = schedule,
+        num_steps = score_steps,
+        batch_size = batch_size,
+        learning_rate = 3e-4,
+        print_every = score_steps ÷ 5,
+        prediction = score_prediction,
+    )
+    println("Score posterior final loss: $(round(score_losses[end], sigdigits=4))")
+
     return (;
-        score_net, score_ps, score_st,
+        score_net, score_ps, score_st, score_losses,
         surrogate, surr_ps, surr_st, surr_losses,
         schedule,
         surrogate_data_fn, analytical_data_fn,
+        prior_fn, simulator_fn,
         speedup,
         lows, highs, spans,
     )

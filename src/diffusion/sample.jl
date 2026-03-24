@@ -2,6 +2,7 @@
 DDPM sampling for the score-based posterior.
 
 Uses the unified ScoreNetwork with FiLM conditioning.
+Supports GPU inference via an optional `device` keyword argument.
 """
 
 using LinearAlgebra
@@ -14,15 +15,20 @@ function sample_posterior(
     n_scalars::Int = 4,
     n_vectors::Int = 2,
     prediction::Symbol = :eps,
+    device = cpu_device(),
 )
+    # Move model parameters and state to device
+    ps = ps |> device
+    st = st |> device
+
     rng = Random.default_rng()
     param_dim = n_scalars + n_vectors * 3
 
-    # Start from noise
-    theta_t = randn(rng, Float32, param_dim, n_samples)
+    # Start from noise (generate on CPU, transfer to device)
+    theta_t = randn(rng, Float32, param_dim, n_samples) |> device
 
     # Broadcast signal for all samples: (signal_dim, n_samples)
-    signal_batch = repeat(signal, 1, n_samples)
+    signal_batch = repeat(signal, 1, n_samples) |> device
 
     # Discrete timesteps
     timesteps = range(1.0f0, 1f-4, length=n_steps)
@@ -36,11 +42,11 @@ function sample_posterior(
         sqrt_1m_ab_t = sqrt(max(1.0f0 - ab_t, 0.0f0))
 
         # Batched forward pass through ScoreNetwork
-        t_batch = fill(Float32(t), 1, n_samples)
+        t_batch = fill(Float32(t), 1, n_samples) |> device
         x = (; theta_t = theta_t, t = t_batch, signal = signal_batch)
         net_out, st = model(x, ps, st)
 
-        # DDPM reverse step (batched)
+        # DDPM reverse step (batched, on device)
         if prediction == :v
             pred_x0 = sqrt_ab_t .* theta_t .- sqrt_1m_ab_t .* net_out
             eps_pred = (theta_t .- sqrt_ab_t .* pred_x0) ./
@@ -60,10 +66,14 @@ function sample_posterior(
         beta_t = 1.0f0 - ab_t / max(ab_prev, 1f-8)
         sigma_t = sqrt(clamp(beta_t, 0.0f0, 1.0f0))
 
-        noise = idx < n_steps ? randn(rng, Float32, param_dim, n_samples) :
-                                zeros(Float32, param_dim, n_samples)
+        noise = idx < n_steps ?
+            (randn(rng, Float32, param_dim, n_samples) |> device) :
+            (zeros(Float32, param_dim, n_samples) |> device)
         theta_t = mu .+ sigma_t .* noise
     end
+
+    # Move back to CPU for orientation normalisation (in-place @view mutation)
+    theta_t = theta_t |> cpu_device()
 
     # Normalise orientation vectors back to unit sphere
     for v in 1:n_vectors

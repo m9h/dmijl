@@ -12,6 +12,10 @@ module Microstructure
 using Lux, Random, Statistics, LinearAlgebra
 using ComponentArrays, Optimisers, Zygote
 
+# ---- GPU / device utilities ----
+include("gpu.jl")
+export select_device, to_device
+
 # ---- Acquisition ----
 include("pipeline/acquisition.jl")
 export Acquisition, hcp_like_acquisition, load_acquisition

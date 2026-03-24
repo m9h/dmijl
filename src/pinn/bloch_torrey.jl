@@ -51,12 +51,15 @@ end
 # ------------------------------------------------------------------ #
 
 """
-    train_surrogate!(model, ps, st, data_fn; n_steps, batch_size, lr)
+    train_surrogate!(model, ps, st, data_fn; n_steps, batch_size, lr, device)
 
 Train surrogate on (params, signal) pairs from a reference simulator.
 
 `data_fn(rng, n)` should return `(params, signals)` each of shape
 `(dim, n)` — column-major batches.
+
+Supports GPU acceleration via the `device` keyword argument.
+Pass `device = select_device()` to auto-detect CUDA.
 """
 function train_surrogate!(
     model, ps, st, data_fn;
@@ -65,7 +68,12 @@ function train_surrogate!(
     learning_rate::Float64 = 1e-3,
     print_every::Int = 1000,
     loss_type::Symbol = :log_cosh,
+    device = cpu_device(),
 )
+    # Move model parameters and state to device
+    ps = ps |> device
+    st = st |> device
+
     opt_state = Optimisers.setup(Adam(learning_rate), ps)
     rng = Random.default_rng()
     losses = Float64[]
@@ -73,8 +81,10 @@ function train_surrogate!(
     t0 = time()
 
     for step in 1:n_steps
-        # Generate training batch from reference simulator
+        # Generate training batch from reference simulator (CPU), then transfer
         params_batch, signals_batch = data_fn(rng, batch_size)
+        params_batch  = params_batch  |> device
+        signals_batch = signals_batch |> device
 
         # Compute loss and gradients
         (loss, st), grads = Zygote.withgradient(ps) do p
@@ -104,7 +114,11 @@ function train_surrogate!(
 
     elapsed = time() - t0
     @info "[Surrogate] Done. $n_steps steps in $(round(elapsed, digits=1))s"
-    return ps, st, losses
+
+    # Move results back to CPU for downstream use
+    ps_cpu = ps |> cpu_device()
+    st_cpu = st |> cpu_device()
+    return ps_cpu, st_cpu, losses
 end
 
 # ------------------------------------------------------------------ #
@@ -272,7 +286,7 @@ end
 """
     train_pinn!(model, ps, st, data_fn, residual;
                 n_steps, batch_size, n_colloc, lr, lambda_pde,
-                colloc_sampler, D_fn, T2_fn)
+                colloc_sampler, D_fn, T2_fn, device)
 
 Train a PINN surrogate with a combined loss:
 
@@ -281,6 +295,14 @@ Train a PINN surrogate with a combined loss:
 where L_data is supervised MSE on (params, signal) pairs from MCMRSimulator
 (or another reference simulator), and L_pde is the Bloch-Torrey PDE residual
 evaluated at randomly sampled collocation points.
+
+Supports GPU acceleration via the `device` keyword argument.
+Pass `device = select_device()` to auto-detect CUDA.
+
+Note: The PDE residual computation (`pde_loss`) uses per-sample loops with
+Zygote AD for second derivatives, which does not currently benefit from GPU
+acceleration. The supervised data loss path is fully GPU-accelerated; the
+collocation data is kept on CPU for the PDE residual.
 
 # Arguments
 - `model`: Lux model (PINN variant taking spatiotemporal input)
@@ -299,6 +321,7 @@ evaluated at randomly sampled collocation points.
 - `D_fn(rng, n)`: returns diffusivity vector `(n,)` (default: 2.0e-9)
 - `T2_fn(rng, n)`: returns T2 vector `(n,)` (default: 80e-3)
 - `print_every`: logging interval (default: 1000)
+- `device`: device transfer function (default: `cpu_device()`)
 """
 function train_pinn!(
     model, ps, st, data_fn,
@@ -312,7 +335,12 @@ function train_pinn!(
     D_fn = nothing,
     T2_fn = nothing,
     print_every::Int = 1000,
+    device = cpu_device(),
 )
+    # Move model parameters and state to device
+    ps = ps |> device
+    st = st |> device
+
     opt_state = Optimisers.setup(Adam(learning_rate), ps)
     rng = Random.default_rng()
     losses_data = Float64[]
@@ -338,26 +366,33 @@ function train_pinn!(
         T2_fn = (rng, n) -> fill(80.0f-3, n)
     end
 
+    # We need CPU copies of ps/st for the PDE residual (per-sample AD loops)
+    _cpu = cpu_device()
+
     t0 = time()
 
     for step in 1:n_steps
-        # --- Sample supervised data ---
+        # --- Sample supervised data (CPU) then transfer ---
         params_batch, signals_batch = data_fn(rng, batch_size)
+        params_batch_dev  = params_batch  |> device
+        signals_batch_dev = signals_batch |> device
 
-        # --- Sample collocation points ---
+        # --- Sample collocation points (stay on CPU for PDE residual) ---
         t_c, x_c = colloc_sampler(rng, n_colloc)
         D_c  = D_fn(rng, n_colloc)
         T2_c = T2_fn(rng, n_colloc)
 
         # --- Combined gradient step ---
         (loss_total, (st, l_data, l_pde)), grads = Zygote.withgradient(ps) do p
-            # Supervised loss
-            pred, new_st = model(params_batch, p, st)
-            l_data = mean((pred .- signals_batch).^2)
+            # Supervised loss (on device)
+            pred, new_st = model(params_batch_dev, p, st)
+            l_data = mean((pred .- signals_batch_dev).^2)
 
-            # PDE residual loss (no gradient w.r.t. ps taken inside;
-            # pde_loss recomputes forward passes that do depend on p)
-            l_pde = pde_loss(residual, model, p, new_st, t_c, x_c, D_c, T2_c)
+            # PDE residual loss — uses per-sample loops with nested AD,
+            # so we transfer params to CPU for this computation.
+            p_cpu  = p      |> _cpu
+            st_cpu = new_st |> _cpu
+            l_pde = pde_loss(residual, model, p_cpu, st_cpu, t_c, x_c, D_c, T2_c)
 
             l_total = l_data + Float32(lambda_pde) * l_pde
             return l_total, (new_st, l_data, l_pde)
@@ -381,7 +416,11 @@ function train_pinn!(
 
     elapsed = time() - t0
     @info "[PINN] Done. $n_steps steps in $(round(elapsed, digits=1))s"
-    return ps, st, (; data=losses_data, pde=losses_pde, total=losses_total)
+
+    # Move results back to CPU for downstream use
+    ps_cpu = ps |> _cpu
+    st_cpu = st |> _cpu
+    return ps_cpu, st_cpu, (; data=losses_data, pde=losses_pde, total=losses_total)
 end
 
 # ------------------------------------------------------------------ #
