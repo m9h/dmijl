@@ -81,6 +81,11 @@ export train_surrogate_sbi
 include("validation/metrics.jl")
 export angular_error_deg, pearson_r, rmse, evaluate_ball2stick
 
+# ---- Compatibility with Ting Gong's Microstructure.jl ----
+include("compat/microstructure_jl.jl")
+export MicrostructureProtocol, load_protocol, protocol_from_bval_bvec
+export cross_validate_compartments, load_for_dfield
+
 include("validation/koma_oracle.jl")
 export validate_free_diffusion_koma, validate_signal_properties_koma
 
