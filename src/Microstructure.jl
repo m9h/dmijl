@@ -62,6 +62,11 @@ export sample_posterior_diffeq, sample_posterior_ode
 include("pinn/bloch_torrey.jl")
 export build_surrogate, train_surrogate!, BlochTorreyResidual, pde_loss, train_pinn!
 
+# ---- Non-parametric diffusion field recovery ----
+include("pinn/diffusion_field.jl")
+export DiffusionFieldProblem, solve_diffusion_field, extract_maps
+export build_diffusivity_net, build_magnetization_net, eval_D
+
 # ---- MCMRSimulator training data generation ----
 include("pipeline/mcmr_generator.jl")
 export MCMRGeometry, generate_mcmr_training_data,
