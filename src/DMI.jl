@@ -20,7 +20,36 @@ export select_device, to_device
 include("pipeline/acquisition.jl")
 export Acquisition, hcp_like_acquisition, load_acquisition
 
-# ---- Forward models ----
+# ---- Composable compartment models ----
+include("compartments/types.jl")
+export AbstractCompartment, signal, parameter_names, parameter_ranges, parameter_cardinality, nparams
+
+include("compartments/ball.jl")
+export G1Ball
+
+include("compartments/stick.jl")
+export C1Stick
+
+include("compartments/zeppelin.jl")
+export G2Zeppelin
+
+include("compartments/dot.jl")
+export S1Dot
+
+# ---- Multi-compartment composition ----
+include("composition/multi_compartment.jl")
+export MultiCompartmentModel
+export parameter_dictionary_to_array, parameter_array_to_dictionary, get_flat_bounds
+
+# ---- Parameter constraints ----
+include("composition/constraints.jl")
+export ConstrainedModel, set_fixed_parameter, set_volume_fraction_unity, set_tortuosity
+
+# ---- Multi-compartment fitting ----
+include("fitting/nlls.jl")
+export fit_mcm, fit_mcm_batch
+
+# ---- Legacy forward models ----
 include("models/ball_stick.jl")
 export BallStickModel
 

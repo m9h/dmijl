@@ -1,6 +1,12 @@
 using Test
 
+using DMI
+
 @testset "DMI.jl" begin
+    include("test_compartments.jl")
+    include("test_composition.jl")
+    include("test_constraints.jl")
+    include("test_fitting.jl")
     include("test_analytical.jl")
     include("test_physics.jl")
     include("test_surrogate.jl")
