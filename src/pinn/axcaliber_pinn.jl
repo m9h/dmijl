@@ -247,7 +247,12 @@ function train_axcaliber_pinn!(
                         continue  # skip b=0
                     end
 
-                    g = Float64.(bvecs_a[j, :])
+                    # Handle both (n, 3) and (3, n) bvec layouts
+                    if size(bvecs_a, 1) == 3 && size(bvecs_a, 2) != 3
+                        g = Float64.(bvecs_a[:, j])  # (3, n) layout
+                    else
+                        g = Float64.(bvecs_a[j, :])  # (n, 3) layout
+                    end
                     g_norm = norm(g)
                     if g_norm > 1e-8
                         g = g ./ g_norm
