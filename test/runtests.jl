@@ -7,4 +7,5 @@ using Test
     include("test_score_posterior.jl")
     include("test_mcmr_generator.jl")
     include("test_film_network.jl")
+    include("test_diffusion_field.jl")
 end
