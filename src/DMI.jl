@@ -49,6 +49,10 @@ export ConstrainedModel, set_fixed_parameter, set_volume_fraction_unity, set_tor
 include("fitting/nlls.jl")
 export fit_mcm, fit_mcm_batch
 
+# ---- Orientation distributions ----
+include("distributions/watson.jl")
+export WatsonDistribution, watson_weights, DistributedModel
+
 # ---- Legacy forward models ----
 include("models/ball_stick.jl")
 export BallStickModel
