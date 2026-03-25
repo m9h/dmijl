@@ -7,6 +7,7 @@ using DMI
     include("test_composition.jl")
     include("test_constraints.jl")
     include("test_fitting.jl")
+    include("test_dmipy_crossval.jl")
     include("test_analytical.jl")
     include("test_physics.jl")
     include("test_surrogate.jl")
