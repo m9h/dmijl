@@ -81,7 +81,7 @@ Target: <1% median relative error on held-out signals
 
 ---
 
-## 4. Neural Diffusion Tensor Field Fitting (Julia/Lux.jl) — Real WAND Connectom Data
+## 4. Neural Diffusion Tensor Field Fitting (Julia/Lux.jl) — Real WAND Siemens Connectom Data
 
 **Method:** MLP maps spatial position x → D(x) (diagonal diffusion tensor).
 Signal prediction via Stejskal-Tanner equation: S(b,g) = ∫ exp(-b·gᵀD(x)g) dx
@@ -127,7 +127,38 @@ Expected WM values: MD ~ 0.7e-9 m²/s, FA ~ 0.4-0.7
 
 ---
 
-## 5. Cross-validation
+## 5. AxCaliber PINN (Julia/Lux.jl) — Real WAND Siemens Connectom Data
+
+**Method:** This IS a PINN. Network maps concatenated multi-delta signals to
+geometry parameters [R, D_intra, D_extra, f_intra, mu]. The Van Gelderen
+restricted diffusion model provides the physics constraint: predicted signal
+for each (b, delta, Delta) must match the GPD approximation for diffusion
+inside cylinders. Stejskal-Tanner cannot recover axon radius because it
+assumes Gaussian diffusion. The Van Gelderen model captures the
+Delta-dependence that encodes cylinder geometry.
+
+Data: WAND sub-00395, 4 AxCaliber acquisitions (Delta = 18/30/42/55 ms),
+b-values up to 15,500 s/mm^2, Siemens Connectom 300 mT/m.
+
+| Date | Parameter | Recovered | Expected WM | Status |
+|------|-----------|-----------|-------------|--------|
+| Mar 25 | **Axon radius R** | **3.15 um** | 2-5 um | **Correct** |
+| Mar 25 | **Intra fraction f** | **0.46** | 0.4-0.7 | **Correct** |
+| Mar 25 | D_intra | 4.6e-10 m^2/s | 1-2e-9 | Low |
+| Mar 25 | D_extra | 2.6e-9 m^2/s | 0.5-1.5e-9 | High |
+| Mar 25 | Fiber direction | [0.98, 0.14, 0.14] | -- | Dominant x-axis |
+
+Training: 5000 steps, 168 seconds on DGX Spark Grace CPU.
+
+### Key findings:
+- Axon radius R = 3.15 um recovered from restricted diffusion physics
+- The Delta-dependence (4 different diffusion times) is what encodes geometry
+- Van Gelderen correctly captures signal plateau at high b (restricted component)
+- First proper PINN result on real data in this project
+
+---
+
+## 6. Cross-validation
 
 | Test | Result |
 |------|--------|
@@ -139,7 +170,7 @@ Expected WM values: MD ~ 0.7e-9 m²/s, FA ~ 0.4-0.7
 
 ---
 
-## 6. DiffEq Sampler Benchmark (Julia)
+## 7. DiffEq Sampler Benchmark (Julia)
 
 **Method:** DifferentialEquations.jl SDE/ODE solvers with dummy score function.
 Measures solver overhead only — with a real score network, network evaluation dominates.

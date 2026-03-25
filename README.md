@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <strong>Score-based posterior inference for diffusion MRI microstructure — built on Julia's SciML stack.</strong>
+  <strong>Physics-informed neural networks and score-based inference for diffusion MRI microstructure.</strong>
 </p>
 
 <p align="center">
@@ -14,23 +14,63 @@
   <img src="https://img.shields.io/badge/Lux.jl-neural_nets-E91E63?style=flat-square" alt="Lux.jl">
   <img src="https://img.shields.io/badge/DifferentialEquations.jl-SDE_solvers-FF6F00?style=flat-square" alt="DiffEq">
   <img src="https://img.shields.io/badge/CUDA-GPU_ready-76B900?style=flat-square&logo=nvidia" alt="CUDA">
-  <img src="https://img.shields.io/badge/tests-558_passing-22C55E?style=flat-square" alt="Tests">
 </p>
 
 ---
 
-## Why DMI.jl?
+## Results on Real Data
 
-Traditional dMRI microstructure pipelines fit point estimates from hand-crafted models. **DMI.jl** takes a different approach — it learns the **full Bayesian posterior** over tissue parameters using score-based generative models, giving you uncertainty maps alongside parameter maps.
+Validated on **WAND** (Welsh Advanced Neuroimaging Database) — Siemens Connectom 300 mT/m scanner.
 
-| What you get | How it works |
-|:---|:---|
-| 🧠 **Full posterior distributions** | Score-based diffusion models conditioned on observed signals |
-| ⚡ **Native SDE/ODE solvers** | DifferentialEquations.jl — no XLA compilation wall |
-| 🔬 **Monte Carlo ground truth** | MCMRSimulator.jl integration for physics-validated training data |
-| 🗺️ **Non-parametric D(r) fields** | Recover spatially-varying diffusion tensors without geometric models |
-| 🏗️ **Physics-informed surrogates** | Bloch-Torrey PINNs for fast forward simulation |
-| 🎯 **Multiple tissue models** | Ball+Stick, DTI, NODDI via multiple dispatch |
+### AxCaliber PINN: axon radius from restricted diffusion
+
+The Van Gelderen restricted diffusion model recovers compartment geometry
+from multi-delta AxCaliber data. This is a proper PINN: the physics of
+restricted diffusion inside cylinders constrains the inverse problem.
+Stejskal-Tanner (Gaussian diffusion) cannot recover axon radius.
+
+| Parameter | Recovered | Expected WM |
+|:----------|:----------|:------------|
+| Axon radius R | **3.15 um** | 2-5 um |
+| Intra-cellular fraction | **0.46** | 0.4-0.7 |
+| D intra-cellular | 4.6e-10 m^2/s | 1-2e-9 |
+| Fiber direction | [0.98, 0.14, 0.14] | — |
+
+Data: sub-00395, 4 AxCaliber acquisitions (delta = 18/30/42/55 ms, b up to 15,500 s/mm^2).
+Training: 168 seconds on DGX Spark Grace CPU.
+
+### Neural diffusion tensor field: direction-aware fitting
+
+Recovers spatially-varying D(x) from CHARMED data (7 shells, b=0-6000 s/mm^2)
+using the Stejskal-Tanner equation with direction-dependent signal prediction.
+Not a PINN — no PDE residual, just physics-based signal model.
+
+| Metric | Recovered | Expected WM |
+|:-------|:----------|:------------|
+| MD | **7.4e-10 m^2/s** | ~0.7e-9 |
+| FA | **0.42** | 0.4-0.7 |
+
+Key insight: log-space loss (not MSE) is critical for correct MD.
+
+### Cross-validation
+
+| Test | Result |
+|:-----|:-------|
+| Microstructure.jl compartments (Cylinder, Zeppelin, Iso, Sphere) | PASS at 1e-13 |
+| KomaMRI signal properties (1000 random configurations) | 1000/1000 PASS |
+| Van Gelderen restricted diffusion (112 physics tests) | ALL PASS |
+
+---
+
+## What DMI.jl does
+
+| Capability | Method | Status |
+|:-----------|:-------|:-------|
+| **Axon radius estimation** | AxCaliber PINN (Van Gelderen) | Validated on real data |
+| **Diffusion tensor field** | Neural field + Stejskal-Tanner | FA=0.42, MD correct |
+| **Score-based posteriors** | Denoising score matching + DDPM | 12.8 deg orientation error |
+| **Forward model surrogate** | Supervised MLP regression | 0.96% error, spec passed |
+| **Native SDE/ODE samplers** | DifferentialEquations.jl | EM 21k samples/s |
 
 ---
 
@@ -39,43 +79,49 @@ Traditional dMRI microstructure pipelines fit point estimates from hand-crafted 
 <table>
 <tr>
 <th>Forward Models</th>
-<th>Score Posterior</th>
-<th>Non-parametric Recovery</th>
+<th>Inference</th>
+<th>PINNs</th>
 </tr>
 <tr>
 <td>
 <code>BallStickModel</code><br>
 <code>DTIModel</code><br>
-<code>NODDIModel</code>
+<code>NODDIModel</code><br>
+<code>van_gelderen_cylinder</code>
 </td>
 <td>
-<code>ScoreNetwork</code> (FiLM + SinEmb)<br>
+<code>ScoreNetwork</code> (FiLM)<br>
 <code>train_score!</code><br>
-<code>sample_posterior</code>
+<code>sample_posterior</code><br>
+<code>sample_posterior_diffeq</code>
 </td>
+<td>
+<code>AxCaliberData</code><br>
+<code>build_axcaliber_pinn</code><br>
+<code>train_axcaliber_pinn!</code><br>
+<code>BlochTorreyResidual</code>
+</td>
+</tr>
+<tr>
+<th>Tensor Field Recovery</th>
+<th>Validation</th>
+<th>Compatibility</th>
+</tr>
+<tr>
 <td>
 <code>DiffusionFieldProblem</code><br>
-<code>solve_diffusion_field</code><br>
-<code>solve_diffusion_field_v2</code> (tensor)
-</td>
-</tr>
-<tr>
-<th colspan="2">PINN / Surrogates</th>
-<th>Validation</th>
-</tr>
-<tr>
-<td colspan="2">
-<code>BlochTorreyResidual</code> · <code>build_surrogate</code> · <code>train_pinn!</code> · <code>surrogate_sbi</code> pipeline
+<code>solve_diffusion_field_v2</code><br>
+<code>extract_maps</code> (FA, MD)
 </td>
 <td>
 KomaMRI oracle<br>
-MCMRSimulator compat<br>
-<code>angular_error</code> · <code>rmse</code> · <code>pearson_r</code>
+Microstructure.jl compat<br>
+<code>angular_error</code> / <code>rmse</code>
 </td>
-</tr>
-<tr>
-<td colspan="3" align="center">
-<strong>Infrastructure:</strong> GPU auto-detect · Rician noise · Acquisition · Lux.jl · Zygote AD · DifferentialEquations.jl
+<td>
+Microstructure.jl (MGH)<br>
+KomaMRI.jl<br>
+FSL bval/bvec I/O
 </td>
 </tr>
 </table>
@@ -86,159 +132,105 @@ MCMRSimulator compat<br>
 
 ```julia
 using Pkg
-Pkg.develop(path="/path/to/dmijl")
+Pkg.develop(url="https://github.com/m9h/dmijl")
 ```
 
-<details>
-<summary><strong>GPU support</strong></summary>
-
-DMI.jl auto-detects CUDA GPUs via `LuxCUDA`. Just ensure your system has a working CUDA toolkit:
+GPU support auto-detects via `LuxCUDA`:
 
 ```julia
 using DMI
-dev = select_device()   # auto-detects GPU or falls back to CPU
+dev = select_device()  # auto-detects GPU or falls back to CPU
 ```
-
-</details>
 
 ---
 
 ## Quick Start
 
-### Score-based posterior inference
-
-Train a conditional score model on synthetic Ball+Stick data, then sample the full posterior for observed signals:
+### AxCaliber PINN (restricted diffusion)
 
 ```julia
-using DMI, Random
+using DMI, Lux, Random
 
-rng = MersenneTwister(42)
-acq = hcp_like_acquisition()
+# Load multi-delta AxCaliber data
+data = AxCaliberData(
+    signals,    # 4 signal vectors (one per acquisition)
+    bvalues,    # 4 b-value vectors
+    bvecs,      # 4 gradient direction matrices
+    deltas,     # [11e-3, 11e-3, 11e-3, 11e-3]  (small delta)
+    Deltas,     # [18e-3, 30e-3, 42e-3, 55e-3]  (big delta)
+)
 
-# Generate training data
-model = BallStickModel()
-sim = ModelSimulator(model, acq)
-θ, S = sample_and_simulate(sim, rng, 50_000)
-S_noisy = add_rician_noise(S, 0.05, rng)
+# Build and train PINN
+model = build_axcaliber_pinn(; signal_dim=264, hidden_dim=128, depth=5)
+ps, st = Lux.setup(MersenneTwister(42), model)
 
-# Train score network
-net, ps, st = build_score_net(; obs_dim=size(S, 1), param_dim=size(θ, 1))
-schedule = VPSchedule()
-ps, st = train_score!(net, ps, st, schedule, θ, S_noisy, rng;
-                      n_epochs=200, batch_size=512)
+ps, st, geom, losses = train_axcaliber_pinn!(model, ps, st, data;
+    n_steps=5000, lambda_physics=1.0)
 
-# Sample posterior for a new observation
-S_obs = S_noisy[:, 1]
-posterior_samples = sample_posterior(net, ps, st, schedule, S_obs, rng;
-                                    n_samples=1000)
+# geom.R       — axon radius (meters)
+# geom.D_intra — intra-cellular diffusivity
+# geom.f_intra — intra-cellular fraction
+# geom.mu      — fiber orientation (unit vector)
 ```
 
-### Non-parametric D(r) recovery
-
-Recover the spatially-varying diffusion tensor field directly from signal — no geometric model assumptions:
+### Non-parametric D(r) field
 
 ```julia
 using DMI
 
-problem = DiffusionFieldProblem(;
-    observed_signal = S_obs,
-    bvalues = acq.bvalues,
-    gradient_directions = acq.gradient_directions,
-    voxel_size = 2.0,
-)
+problem = DiffusionFieldProblem(signal, bvalues, bvecs, delta, Delta, T2, voxel_size)
 
 result = solve_diffusion_field_v2(problem;
     output_type = :diagonal,
-    n_steps = 10_000,
+    n_steps = 5000,
 )
 
-maps = extract_maps(result.D_net, result.ps_D, result.st_D, result.D_type)
-# maps.FA, maps.MD, maps.AD, maps.RD
+maps = extract_maps(result; grid_resolution=8)
+# maps.FA, maps.MD
 ```
 
 ---
 
-## Examples
+## Companion project
 
-| Script | Description |
-|:---|:---|
-| [`ball2stick_score.jl`](examples/ball2stick_score.jl) | End-to-end score-based inference on Ball+2Stick |
-| [`ds001957_inference.jl`](examples/ds001957_inference.jl) | Real data inference on BIDS dataset (NIfTI + bval/bvec) |
-| [`mcmr_restricted_diffusion.jl`](examples/mcmr_restricted_diffusion.jl) | Score model trained on MCMRSimulator ground truth |
-| [`pinn_bloch_torrey.jl`](examples/pinn_bloch_torrey.jl) | Bloch-Torrey PINN surrogate training |
-| [`benchmark_samplers.jl`](examples/benchmark_samplers.jl) | Euler vs DiffEq SDE/ODE sampler comparison |
-| [`benchmark_vs_conventional.jl`](examples/benchmark_vs_conventional.jl) | DMI.jl vs conventional fitting pipelines |
+**[SBI4DWI](https://github.com/m9h/sbi4dwi)** (Python/JAX) — normalizing flow NPE
+and score-based posteriors for the same microstructure models. Achieves 3.2 deg
+median orientation error on Ball+2Stick with neural spline flows (200k steps).
 
----
-
-## Project Structure
-
-```
-dmijl/
-├── src/
-│   ├── DMI.jl                      # Main module
-│   ├── gpu.jl                      # CUDA device auto-detection
-│   ├── noise.jl                    # Rician noise model
-│   ├── models/
-│   │   ├── ball_stick.jl           # Ball+Stick forward model
-│   │   ├── dti.jl                  # Diffusion Tensor Imaging
-│   │   └── noddi.jl                # NODDI (Watson distribution)
-│   ├── diffusion/
-│   │   ├── schedule.jl             # VP noise schedule
-│   │   ├── score_net.jl            # FiLM-conditioned score network
-│   │   ├── train.jl                # Denoising score matching
-│   │   ├── sample.jl               # Euler-Maruyama reverse SDE
-│   │   └── sample_diffeq.jl        # DifferentialEquations.jl samplers
-│   ├── pinn/
-│   │   ├── bloch_torrey.jl         # Bloch-Torrey PINN surrogate
-│   │   ├── diffusion_field.jl      # Non-parametric D(r) recovery
-│   │   └── diffusion_field_v2.jl   # Direction-aware D(r) (tensor)
-│   ├── pipeline/
-│   │   ├── acquisition.jl          # dMRI acquisition protocols
-│   │   ├── config.jl               # SBI configuration
-│   │   ├── simulator.jl            # Forward simulation pipeline
-│   │   ├── mcmr_generator.jl       # MCMRSimulator data generation
-│   │   └── surrogate_sbi.jl        # Surrogate-accelerated SBI
-│   ├── compat/
-│   │   └── microstructure_jl.jl    # Ting Gong's Microstructure.jl compat
-│   └── validation/
-│       ├── metrics.jl              # Angular error, RMSE, Pearson r
-│       └── koma_oracle.jl          # KomaMRI validation oracle
-├── test/                           # 558 passing tests
-├── examples/                       # Runnable scripts
-├── slurm/                          # HPC batch scripts
-└── results/                        # Surrogate sweep outputs
-```
+The two projects share:
+- Same forward models (Ball+Stick, NODDI, DTI)
+- Same WAND Connectom validation data
+- Cross-validated against Microstructure.jl (Ting Gong, MGH/Martinos)
 
 ---
 
 ## Key Dependencies
 
 | Package | Role |
-|:---|:---|
+|:--------|:-----|
 | [Lux.jl](https://github.com/LuxDL/Lux.jl) | Neural network layers (pure functional) |
 | [Zygote.jl](https://github.com/FluxML/Zygote.jl) | Automatic differentiation |
-| [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) | SDE/ODE reverse samplers |
-| [MCMRSimulator.jl](https://git.fmrib.ox.ac.uk/ndcn0236/MCMRSimulator.jl) | Monte Carlo MR forward simulation |
-| [KomaMRI.jl](https://github.com/JuliaHealth/KomaMRI.jl) | MRI sequence simulation oracle |
-| [LuxCUDA](https://github.com/LuxDL/LuxCUDA.jl) | GPU acceleration |
+| [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) | SDE/ODE solvers for reverse diffusion |
+| [KomaMRI.jl](https://github.com/JuliaHealth/KomaMRI.jl) | Bloch simulation validation oracle |
+| [MCMRSimulator.jl](https://github.com/MichielCottaar/MCMRSimulator.jl) | Monte Carlo forward simulation (Cottaar/Jbabdi/Miller, FMRIB) |
+| [Microstructure.jl](https://github.com/TingGong/Microstructure.jl) | Cross-validation reference (Ting Gong, MGH/Martinos) |
 
 ---
 
-## Testing
+## Full Leaderboard
 
-```bash
-julia --project -e 'using Pkg; Pkg.test()'
-```
+See [`results/LEADERBOARD.md`](results/LEADERBOARD.md) for all results across
+both DMI.jl and SBI4DWI, including autoresearch sweeps.
 
 ---
 
 ## License
 
-TBD
+MIT
 
 ---
 
 <p align="center">
-  <sub>Built with Julia's <a href="https://sciml.ai/">SciML</a> ecosystem</sub>
+  <sub>Built with Julia's <a href="https://sciml.ai/">SciML</a> ecosystem.
+  Validated on <a href="https://git.cardiff.ac.uk/cubric/wand">WAND</a> Connectom data.</sub>
 </p>
