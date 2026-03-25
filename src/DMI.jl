@@ -1,5 +1,5 @@
 """
-Microstructure.jl — Score-based dMRI microstructure estimation in Julia.
+DMI.jl — Diffusion Microstructural Imaging in Julia.
 
 Focuses on what Julia does better than Python/JAX:
 - Native SDE solvers (DifferentialEquations.jl) for reverse diffusion
@@ -7,7 +7,7 @@ Focuses on what Julia does better than Python/JAX:
 - MCMRSimulator.jl integration for Monte Carlo forward simulation
 - Multiple forward models with Julia's multiple dispatch
 """
-module Microstructure
+module DMI
 
 using Lux, Random, Statistics, LinearAlgebra
 using ComponentArrays, Optimisers, Zygote
@@ -66,6 +66,10 @@ export build_surrogate, train_surrogate!, BlochTorreyResidual, pde_loss, train_p
 include("pinn/diffusion_field.jl")
 export DiffusionFieldProblem, solve_diffusion_field, extract_maps
 export build_diffusivity_net, build_magnetization_net, eval_D
+
+# ---- Direction-aware diffusion field recovery (v2) ----
+include("pinn/diffusion_field_v2.jl")
+export predict_signal_directional, solve_diffusion_field_v2
 
 # ---- MCMRSimulator training data generation ----
 include("pipeline/mcmr_generator.jl")

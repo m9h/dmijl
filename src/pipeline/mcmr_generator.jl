@@ -6,7 +6,7 @@ through realistic tissue microstructure geometries (packed cylinders for white
 matter axons, packed spheres for grey matter soma).
 
 This module bridges MCMRSimulator.jl's physics engine with the surrogate
-training pipeline in Microstructure.jl. The `mcmr_data_fn` convenience
+training pipeline in DMI.jl. The `mcmr_data_fn` convenience
 function returns a closure compatible with `train_surrogate!`.
 
 References:

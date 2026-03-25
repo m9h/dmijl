@@ -42,7 +42,7 @@ include("../src/pinn/bloch_torrey.jl")
 # Reproducibility
 rng = Random.MersenneTwister(42)
 
-# --- Microstructure parameter space ---
+# --- dMRI microstructure parameter space ---
 # We estimate 4 scalar parameters (no orientation vectors in this model):
 #   1. r      : axon radius               [0.5, 5.0] um
 #   2. f      : intra-axonal volume frac   [0.3, 0.8]

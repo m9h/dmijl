@@ -15,8 +15,7 @@ when the data supports it.
 
 using Lux, Random, Optimisers, Zygote, Statistics, LinearAlgebra
 
-# Re-export types from v1
-include("diffusion_field.jl")
+# Types from v1 (diffusion_field.jl) are already loaded by the module
 
 # ------------------------------------------------------------------ #
 # Direction-aware signal prediction

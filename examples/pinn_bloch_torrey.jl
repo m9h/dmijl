@@ -40,7 +40,7 @@ include("../src/pipeline/mcmr_generator.jl")
 # Reproducibility
 rng = Random.MersenneTwister(2024)
 
-# --- Microstructure parameter space ---
+# --- dMRI microstructure parameter space ---
 # 3 parameters for cylinder geometry (same as MCMRGeometry):
 #   1. mean_radius      : [0.5, 4.0] um
 #   2. radius_variance  : [0.01, 0.3] um^2

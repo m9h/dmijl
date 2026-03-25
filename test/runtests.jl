@@ -1,6 +1,6 @@
 using Test
 
-@testset "Microstructure.jl" begin
+@testset "DMI.jl" begin
     include("test_analytical.jl")
     include("test_physics.jl")
     include("test_surrogate.jl")

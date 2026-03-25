@@ -166,7 +166,7 @@ function _ensure_koma_helpers!()
 
     # Define the simulation runner.
     # Use fully-qualified KomaMRI.simulate to avoid dispatch ambiguity
-    # with Microstructure.simulate (which operates on forward models).
+    # with DMI.simulate (which operates on forward models).
     @eval function _koma_simulate(obj, seq)
         sys = KomaMRI.Scanner()
         sim_params = Dict{String, Any}(

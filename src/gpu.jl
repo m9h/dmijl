@@ -1,5 +1,5 @@
 """
-GPU/CUDA acceleration utilities for Microstructure.jl.
+GPU/CUDA acceleration utilities for DMI.jl.
 
 Provides device selection and data transfer helpers built on Lux's
 MLDataDevices integration. CUDA and LuxCUDA are already in Project.toml;
@@ -27,7 +27,7 @@ The returned object can be used with the pipe operator:
 """
 function select_device(; force_cpu::Bool = false)
     if force_cpu
-        @info "[Microstructure] Using CPU (force_cpu=true)"
+        @info "[DMI] Using CPU (force_cpu=true)"
         return cpu_device()
     end
 
@@ -35,9 +35,9 @@ function select_device(; force_cpu::Bool = false)
     # instead of throwing an error.
     dev = gpu_device(; force = false)
     if dev == cpu_device()
-        @info "[Microstructure] No GPU detected, using CPU"
+        @info "[DMI] No GPU detected, using CPU"
     else
-        @info "[Microstructure] Using GPU: $dev"
+        @info "[DMI] Using GPU: $dev"
     end
     return dev
 end
