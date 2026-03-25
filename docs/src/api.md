@@ -1,6 +1,42 @@
 # API Reference
 
-## Forward Models
+## Compartment Models
+
+### Types
+- `AbstractCompartment` — base type for all compartments
+- `signal(compartment, acq, params)` — compute signal attenuation
+- `parameter_names(compartment)` — ordered parameter name list
+- `parameter_ranges(compartment)` — `Dict{String, Tuple{Float64, Float64}}`
+- `nparams(compartment)` — number of parameters
+
+### Compartments
+- `G1Ball()` — isotropic Gaussian (1 param: lambda_iso)
+- `C1Stick()` — intra-axonal stick (4 params: lambda_par, mu_xyz)
+- `G2Zeppelin()` — axially symmetric tensor (5 params: lambda_par, lambda_perp, mu_xyz)
+- `S1Dot()` — stationary water (0 params)
+
+### Composition
+- `MultiCompartmentModel(compartments)` — combine with volume fractions
+- `parameter_dictionary_to_array(mcm, dict)` — dict to flat vector
+- `parameter_array_to_dictionary(mcm, array)` — flat vector to dict
+- `get_flat_bounds(mcm)` — (lows, highs) for all parameters
+
+### Constraints
+- `ConstrainedModel(mcm)` — wrap MCM with parameter constraints
+- `set_fixed_parameter(cm, name, value)` — fix a parameter
+- `set_volume_fraction_unity(cm)` — fractions sum to 1
+- `set_tortuosity(cm, perp, par, fraction)` — tortuosity constraint
+
+### Orientation Distributions
+- `WatsonDistribution(; n_grid=300)` — Watson distribution on Fibonacci grid
+- `watson_weights(watson, kappa, mu)` — compute weights for given κ, μ
+- `DistributedModel(compartment, watson)` — convolve compartment with Watson ODF
+
+### Fitting
+- `fit_mcm(mcm, acq, signal; n_restarts)` — NLLS fit single voxel
+- `fit_mcm_batch(mcm, acq, signals; n_restarts)` — batch fitting
+
+## Legacy Forward Models
 
 ### Ball+2Stick
 - `BallStickModel(bvalues, gradient_directions)` — construct model

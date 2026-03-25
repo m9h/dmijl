@@ -66,6 +66,9 @@ Key insight: log-space loss (not MSE) is critical for correct MD.
 
 | Capability | Method | Status |
 |:-----------|:-------|:-------|
+| **Composable signal models** | G1Ball, C1Stick, G2Zeppelin, S1Dot + multi-compartment | Tested, dmipy-compatible |
+| **Orientation dispersion** | Watson distribution on Fibonacci sphere grid | Tested |
+| **Multi-compartment fitting** | NLLS via Optimisers.jl | Working |
 | **Axon radius estimation** | AxCaliber PINN (Van Gelderen) | Validated on real data |
 | **Diffusion tensor field** | Neural field + Stejskal-Tanner | FA=0.42, MD correct |
 | **Score-based posteriors** | Denoising score matching + DDPM | 12.8 deg orientation error |
@@ -78,36 +81,42 @@ Key insight: log-space loss (not MSE) is critical for correct MD.
 
 <table>
 <tr>
-<th>Forward Models</th>
+<th>Compartment Models</th>
+<th>Composition</th>
 <th>Inference</th>
-<th>PINNs</th>
 </tr>
 <tr>
 <td>
-<code>BallStickModel</code><br>
-<code>DTIModel</code><br>
-<code>NODDIModel</code><br>
-<code>van_gelderen_cylinder</code>
+<code>G1Ball</code> (isotropic)<br>
+<code>C1Stick</code> (intra-axonal)<br>
+<code>G2Zeppelin</code> (extra-cellular)<br>
+<code>S1Dot</code> (stationary water)
 </td>
 <td>
+<code>MultiCompartmentModel</code><br>
+<code>ConstrainedModel</code><br>
+<code>WatsonDistribution</code><br>
+<code>DistributedModel</code>
+</td>
+<td>
+<code>fit_mcm</code> (NLLS)<br>
 <code>ScoreNetwork</code> (FiLM)<br>
 <code>train_score!</code><br>
-<code>sample_posterior</code><br>
-<code>sample_posterior_diffeq</code>
+<code>sample_posterior</code>
 </td>
+</tr>
+<tr>
+<th>PINNs</th>
+<th>Tensor Field Recovery</th>
+<th>Validation</th>
+</tr>
+<tr>
 <td>
 <code>AxCaliberData</code><br>
 <code>build_axcaliber_pinn</code><br>
 <code>train_axcaliber_pinn!</code><br>
 <code>BlochTorreyResidual</code>
 </td>
-</tr>
-<tr>
-<th>Tensor Field Recovery</th>
-<th>Validation</th>
-<th>Compatibility</th>
-</tr>
-<tr>
 <td>
 <code>DiffusionFieldProblem</code><br>
 <code>solve_diffusion_field_v2</code><br>
@@ -117,11 +126,6 @@ Key insight: log-space loss (not MSE) is critical for correct MD.
 KomaMRI oracle<br>
 Microstructure.jl compat<br>
 <code>angular_error</code> / <code>rmse</code>
-</td>
-<td>
-Microstructure.jl (MGH)<br>
-KomaMRI.jl<br>
-FSL bval/bvec I/O
 </td>
 </tr>
 </table>
@@ -145,6 +149,32 @@ dev = select_device()  # auto-detects GPU or falls back to CPU
 ---
 
 ## Quick Start
+
+### Composable multi-compartment fitting
+
+```julia
+using DMI
+
+# Build a Ball+Stick model (like dmipy)
+mcm = MultiCompartmentModel([C1Stick(), G1Ball()])
+
+# Add constraints
+cm = ConstrainedModel(mcm)
+set_fixed_parameter(cm, "G1Ball_lambda_iso", 3.0e-9)  # fix CSF diffusivity
+
+# Fit to observed signal
+acq = load_acquisition("data.bval", "data.bvec")
+result = fit_mcm(cm, acq, signal; n_restarts=5)
+```
+
+### With Watson orientation dispersion (NODDI-like)
+
+```julia
+watson = WatsonDistribution(; n_grid=300)
+dm = DistributedModel(C1Stick(), watson)
+mcm = MultiCompartmentModel([dm, G1Ball()])
+# Fits: lambda_par, mu, kappa (dispersion), lambda_iso, volume fractions
+```
 
 ### AxCaliber PINN (restricted diffusion)
 
