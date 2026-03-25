@@ -73,10 +73,24 @@ Non-parametric diffusion field from CHARMED data (sub-00395, 7 shells, b=0-6000)
 
 Expected WM values: MD ~ 0.7e-9 m²/s, FA ~ 0.4-0.7
 
+### Sweep: fixing MD overestimation (Mar 25)
+
+| Variant | MD (m²/s) | FA | Key change |
+|---------|-----------|-----|-----------|
+| **log_signal** | **7.4e-10** | **0.417** | Log-space loss — **correct MD + FA** |
+| **combo_best** | **7.4e-10** | **0.417** | Log loss + D_reg + more spatial |
+| baseline | 2.75e-9 | 0.280 | MSE loss (MD too high) |
+| D_scale_1e-10 | 2.73e-9 | 0.279 | Tighter scale didn't help |
+| more_spatial | 2.75e-9 | 0.280 | 128 vs 32 MC samples — no diff |
+| D_regularized | 2.60e-9 | 0.124 | Regularization hurt FA |
+| bval_already_m | 2.52e-3 | 0.054 | Confirmed: bvals in s/mm² |
+
 ### Key findings:
 - v1→v2: FA 0.036→0.281 by making prediction direction-dependent
-- MD overestimated (2.7e-9 vs expected 0.7e-9)
-- 8 variant experiments running to fix MD (D-scale, log-loss, regularization)
+- **Log-space loss is the critical fix**: MD 2.7e-9→7.4e-10, FA 0.28→0.42
+- MSE dominated by b=0 shell; log loss gives equal weight to all shells
+- D-scale and spatial sampling don't matter much
+- D regularization hurts (over-constrains)
 
 ## Cross-validation
 
