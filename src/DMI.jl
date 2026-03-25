@@ -91,6 +91,11 @@ export sample_posterior_diffeq, sample_posterior_ode
 include("pinn/bloch_torrey.jl")
 export build_surrogate, train_surrogate!, BlochTorreyResidual, pde_loss, train_pinn!
 
+# ---- AxCaliber PINN (proper physics-informed with Van Gelderen) ----
+include("pinn/axcaliber_pinn.jl")
+export van_gelderen_cylinder, axcaliber_signal
+export AxCaliberData, build_axcaliber_pinn, train_axcaliber_pinn!, decode_geometry
+
 # ---- Non-parametric diffusion field recovery ----
 include("pinn/diffusion_field.jl")
 export DiffusionFieldProblem, solve_diffusion_field, extract_maps
