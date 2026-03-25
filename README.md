@@ -36,27 +36,49 @@ Traditional dMRI microstructure pipelines fit point estimates from hand-crafted 
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                          DMI.jl                                 │
-├─────────────────┬──────────────────┬────────────────────────────┤
-│  Forward Models │  Score Posterior │  Non-parametric Recovery   │
-│  ─────────────  │  ──────────────  │  ──────────────────────── │
-│  BallStickModel │  ScoreNetwork    │  DiffusionFieldProblem     │
-│  DTIModel       │  FiLM + SinEmb   │  solve_diffusion_field     │
-│  NODDIModel     │  train_score!    │  solve_diffusion_field_v2  │
-│                 │  sample_posterior│  (direction-aware D(r))    │
-├─────────────────┼──────────────────┼────────────────────────────┤
-│  PINN / Surrogates                │  Validation                │
-│  ─────────────────────────────────│  ──────────────────────────│
-│  BlochTorreyResidual              │  KomaMRI oracle            │
-│  build_surrogate / train_pinn!    │  MCMRSimulator compat      │
-│  surrogate_sbi pipeline          │  angular_error, RMSE, r    │
-├───────────────────────────────────┴────────────────────────────┤
-│  Infrastructure: GPU auto-detect · Rician noise · Acquisition  │
-│  Lux.jl · Zygote AD · ComponentArrays · DifferentialEquations  │
-└─────────────────────────────────────────────────────────────────┘
-```
+<table>
+<tr>
+<th>Forward Models</th>
+<th>Score Posterior</th>
+<th>Non-parametric Recovery</th>
+</tr>
+<tr>
+<td>
+<code>BallStickModel</code><br>
+<code>DTIModel</code><br>
+<code>NODDIModel</code>
+</td>
+<td>
+<code>ScoreNetwork</code> (FiLM + SinEmb)<br>
+<code>train_score!</code><br>
+<code>sample_posterior</code>
+</td>
+<td>
+<code>DiffusionFieldProblem</code><br>
+<code>solve_diffusion_field</code><br>
+<code>solve_diffusion_field_v2</code> (tensor)
+</td>
+</tr>
+<tr>
+<th colspan="2">PINN / Surrogates</th>
+<th>Validation</th>
+</tr>
+<tr>
+<td colspan="2">
+<code>BlochTorreyResidual</code> · <code>build_surrogate</code> · <code>train_pinn!</code> · <code>surrogate_sbi</code> pipeline
+</td>
+<td>
+KomaMRI oracle<br>
+MCMRSimulator compat<br>
+<code>angular_error</code> · <code>rmse</code> · <code>pearson_r</code>
+</td>
+</tr>
+<tr>
+<td colspan="3" align="center">
+<strong>Infrastructure:</strong> GPU auto-detect · Rician noise · Acquisition · Lux.jl · Zygote AD · DifferentialEquations.jl
+</td>
+</tr>
+</table>
 
 ---
 
