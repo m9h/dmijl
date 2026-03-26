@@ -18,7 +18,8 @@ Target: <3° median Fiber 1 orientation error (Manzano-Patron et al.)
 | Mar 19 | Spline flow + noise fix + label-switching | 6.4° | 0.978 | 0.902 | 30k | All fixes combined |
 | Mar 19 | + lr=1e-4, 50k steps | 7.4° | 0.972 | 0.896 | 50k | lr too slow |
 | Mar 20 | + lr=3e-4, 100k steps | **4.4°** | 0.983 | 0.924 | 100k | Big improvement |
-| Mar 20 | + 200k steps | **3.2°** | 0.986 | 0.935 | 200k | Near target |
+| Mar 20 | + 200k steps | 3.2° | 0.986 | 0.935 | 200k | Near target |
+| Mar 25 | + 300k steps | **2.8°** | **0.987** | **0.943** | 300k | **Target achieved** |
 
 ### Key findings:
 - Training budget dominates: 30k→200k = 6.4°→3.2°

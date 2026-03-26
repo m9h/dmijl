@@ -224,8 +224,8 @@ maps = extract_maps(result; grid_resolution=8)
 ## Companion project
 
 **[SBI4DWI](https://github.com/m9h/sbi4dwi)** (Python/JAX) — normalizing flow NPE
-and score-based posteriors for the same microstructure models. Achieves 3.2 deg
-median orientation error on Ball+2Stick with neural spline flows (200k steps).
+and score-based posteriors for the same microstructure models. Achieves **2.8 deg** median orientation error on Ball+2Stick with neural
+spline flows (300k steps), meeting the Nottingham paper target.
 
 The two projects share:
 - Same forward models (Ball+Stick, NODDI, DTI)

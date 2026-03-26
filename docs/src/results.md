@@ -63,5 +63,16 @@ signal prediction.
 
 ## Full leaderboard
 
+### Flow NPE (SBI4DWI companion project)
+
+The normalizing flow posterior on synthetic Ball+2Stick achieves
+**2.8 deg** median orientation error at 300k steps, meeting the
+Nottingham paper target (<3 deg).
+
+| Steps | Fiber 1 | d_stick r | f1 r |
+|:------|:--------|:----------|:-----|
+| 200k | 3.2 deg | 0.986 | 0.935 |
+| **300k** | **2.8 deg** | **0.987** | **0.943** |
+
 See [`results/LEADERBOARD.md`](https://github.com/m9h/dmijl/blob/master/results/LEADERBOARD.md)
 for the complete history across both DMI.jl and SBI4DWI.
