@@ -99,15 +99,17 @@ t_compile = @elapsed train_one_voxel(model, ps_template, st_template,
 @info "Compiled in $(round(t_compile, digits=1))s"
 
 # NOW FIT ALL VOXELS — no recompilation
-R_map = fill(NaN32, batch_end - batch_start + 1)
-f_map = fill(NaN32, batch_end - batch_start + 1)
-D_intra_map = fill(NaN32, batch_end - batch_start + 1)
-D_extra_map = fill(NaN32, batch_end - batch_start + 1)
+function fit_all_voxels(batch_start, batch_end, model, ps_template, st_template,
+                        all_signals, all_bvals, all_bvecs, delta_all, Deltas, n_steps)
+    R_map = fill(NaN32, batch_end - batch_start + 1)
+    f_map = fill(NaN32, batch_end - batch_start + 1)
+    D_intra_map = fill(NaN32, batch_end - batch_start + 1)
+    D_extra_map = fill(NaN32, batch_end - batch_start + 1)
 
-t0 = time()
-n_done = 0
+    t0 = time()
+    n_done = 0
 
-for idx in batch_start:batch_end
+    for idx in batch_start:batch_end
     local_idx = idx - batch_start + 1
     signals = [all_signals[i][idx, :] for i in 1:4]
 
@@ -143,9 +145,15 @@ for idx in batch_start:batch_end
                 (batch_end - batch_start + 1 - n_done) / max(rate, 0.01) / 60,
                 isempty(R_valid) ? 0.0 : median(R_valid))
     end
-end
+end  # for
 
-elapsed = time() - t0
+    elapsed = time() - t0
+    return R_map, f_map, D_intra_map, D_extra_map, n_done, elapsed
+end  # function
+
+R_map, f_map, D_intra_map, D_extra_map, n_done, elapsed = fit_all_voxels(
+    batch_start, batch_end, model, ps_template, st_template,
+    all_signals, all_bvals, all_bvecs, delta_all, Deltas, n_steps)
 R_valid = filter(!isnan, R_map)
 f_valid = filter(!isnan, f_map)
 @printf("\nDone: %d voxels in %.0fs (%.1f vox/s)\n", n_done, elapsed, n_done/elapsed)
