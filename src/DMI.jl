@@ -103,6 +103,10 @@ export sample_posterior
 include("diffusion/sample_diffeq.jl")
 export sample_posterior_diffeq, sample_posterior_ode
 
+# ---- Mixture Density Network (amortized inference) ----
+include("inference/mdn.jl")
+export build_mdn, mdn_forward, mdn_loss, train_mdn!, sample_mdn
+
 # ---- Bloch-Torrey neural surrogate / PINN ----
 include("pinn/bloch_torrey.jl")
 export build_surrogate, train_surrogate!, BlochTorreyResidual, pde_loss, train_pinn!
@@ -135,6 +139,14 @@ export train_surrogate_sbi
 include("validation/metrics.jl")
 export angular_error_deg, pearson_r, rmse, evaluate_ball2stick
 
+# ---- OOD Detection ----
+include("validation/ood.jl")
+export reconstruction_error, mahalanobis_distance, ood_score, ood_detect
+
+# ---- Posterior Predictive Checks ----
+include("validation/ppc.jl")
+export posterior_predictive_check, ppc_summary
+
 # ---- Compatibility with Ting Gong's Microstructure.jl ----
 include("compat/microstructure_jl.jl")
 export MicrostructureProtocol, load_protocol, protocol_from_bval_bvec
@@ -142,5 +154,13 @@ export cross_validate_compartments, load_for_dfield
 
 include("validation/koma_oracle.jl")
 export validate_free_diffusion_koma, validate_signal_properties_koma
+
+# ---- Simulation-Based Calibration ----
+include("validation/sbc.jl")
+export compute_rank, sbc_ranks, sbc_histogram, sbc_uniformity_test
+
+# ---- Conformal prediction ----
+include("validation/conformal.jl")
+export split_conformal, cqr_conformal, conformal_coverage
 
 end # module

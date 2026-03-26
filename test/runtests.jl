@@ -19,4 +19,8 @@ using DMI
     include("test_sphere_gpd.jl")
     include("test_restricted.jl")
     include("test_noddi.jl")
+    include("test_mdn.jl")
+    include("test_sbc.jl")
+    include("test_conformal.jl")
+    include("test_ood_ppc.jl")
 end
