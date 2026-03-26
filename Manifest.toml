@@ -2117,9 +2117,7 @@ version = "1.17.5"
 
 [[deps.MRIBuilder]]
 deps = ["Interpolations", "Ipopt", "JuMP", "Juniper", "LinearAlgebra", "MacroTools", "MakieCore", "Polynomials", "Printf", "QuadGK", "Rotations", "Serialization", "StaticArrays"]
-git-tree-sha1 = "5c6ec9ea054377ecfc1455e4a4b68dce38ef2df0"
-repo-rev = "main"
-repo-url = "https://git.fmrib.ox.ac.uk/ndcn0236/mribuilder.jl.git"
+path = "/Users/mhough/dev/MRIBuilder.jl"
 uuid = "691e6122-0b62-4932-92e7-e4ff0ddaf3a0"
 version = "0.3.0"
 weakdeps = ["Makie"]
