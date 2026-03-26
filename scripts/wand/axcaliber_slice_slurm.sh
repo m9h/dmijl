@@ -16,5 +16,5 @@ END=$(( SLURM_ARRAY_TASK_ID * PER_JOB ))
 if [ $END -gt $TOTAL ]; then END=$TOTAL; fi
 
 echo "Job ${SLURM_ARRAY_TASK_ID}: voxels ${START}-${END} ($(date))"
-julia --threads=2 /home/mhough/dev/dmijl/scripts/wand/axcaliber_slice_map.jl 2000 ${START} ${END}
+julia --threads=2 /home/mhough/dev/dmijl/scripts/wand/axcaliber_slice_map_v2.jl 2000 ${START} ${END}
 echo "Done ($(date))"

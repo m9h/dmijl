@@ -54,10 +54,13 @@ D_intra_map = fill(NaN32, batch_end - batch_start + 1)
 D_extra_map = fill(NaN32, batch_end - batch_start + 1)
 loss_map = fill(NaN32, batch_end - batch_start + 1)
 
-t0 = time()
-n_done = 0
+function run_batch(batch_start, batch_end, all_signals, all_bvals, all_bvecs,
+                   R_map, f_map, D_intra_map, D_extra_map, loss_map,
+                   delta_all, Deltas, n_steps)
+    t0 = time()
+    n_done = 0
 
-for idx in batch_start:batch_end
+    for idx in batch_start:batch_end
     local_idx = idx - batch_start + 1
 
     # Build per-voxel AxCaliberData
@@ -100,9 +103,14 @@ for idx in batch_start:batch_end
                 n_done, batch_end - batch_start + 1, rate, eta,
                 median(filter(!isnan, R_map)))
     end
-end
+end  # for loop
 
-elapsed = time() - t0
+return n_done, time() - t0
+end  # function
+
+n_done, elapsed = run_batch(batch_start, batch_end, all_signals, all_bvals, all_bvecs,
+                            R_map, f_map, D_intra_map, D_extra_map, loss_map,
+                            delta_all, Deltas, n_steps)
 @printf("\nDone: %d voxels in %.0fs (%.1f vox/s)\n", n_done, elapsed, n_done/elapsed)
 
 # Summary stats
