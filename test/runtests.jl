@@ -16,4 +16,7 @@ using DMI
     include("test_mcmr_generator.jl")
     include("test_film_network.jl")
     include("test_diffusion_field.jl")
+    include("test_sphere_gpd.jl")
+    include("test_restricted.jl")
+    include("test_noddi.jl")
 end

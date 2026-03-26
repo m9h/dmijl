@@ -84,6 +84,14 @@ function set_volume_fraction_unity(mcm::MultiCompartmentModel)
     return ConstrainedModel(mcm, (constraint,))
 end
 
+# ---- LinkedParameter (copies value from one parameter to another) ----
+
+struct LinkedParameter <: AbstractConstraint
+    target_name::Symbol         # name of the derived parameter
+    target_indices::Vector{Int} # flat indices of the target parameter
+    source_indices::Vector{Int} # flat indices of the source parameter to copy from
+end
+
 # ---- TortuosityConstraint ----
 
 struct TortuosityConstraint <: AbstractConstraint
@@ -129,13 +137,15 @@ function _removed_names(cm::ConstrainedModel)
             push!(removed, c.removed_name)
         elseif c isa TortuosityConstraint
             push!(removed, c.target)
+        elseif c isa LinkedParameter
+            push!(removed, c.target_name)
         end
     end
     return removed
 end
 
 function _removed_count(cm::ConstrainedModel)
-    length(_removed_names(cm))
+    length(_removed_flat_indices(cm))
 end
 
 function parameter_names(cm::ConstrainedModel)
@@ -176,6 +186,8 @@ function _removed_flat_indices(cm::ConstrainedModel)
             push!(indices, c.removed_index)
         elseif c isa TortuosityConstraint
             push!(indices, c.target_index)
+        elseif c isa LinkedParameter
+            append!(indices, c.target_indices)
         end
     end
     return sort(indices)
@@ -198,10 +210,14 @@ function signal(cm::ConstrainedModel, acq::Acquisition, free_params::AbstractVec
         end
     end
 
-    # Now fill constrained values
+    # Now fill constrained values (order matters: linked/fixed first, then derived)
     for c in cm.constraints
         if c isa FixedParameter
             full_params[c.index] = c.value
+        elseif c isa LinkedParameter
+            for (ti, si) in zip(c.target_indices, c.source_indices)
+                full_params[ti] = full_params[si]
+            end
         elseif c isa VolumeFractionUnity
             # Derive last fraction = 1 - sum(others)
             other_sum = sum(full_params[i] for i in c.other_indices)

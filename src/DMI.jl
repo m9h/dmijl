@@ -39,6 +39,12 @@ export G2Zeppelin
 include("compartments/dot.jl")
 export S1Dot
 
+include("compartments/sphere_gpd.jl")
+export SphereGPD
+
+include("compartments/restricted_cylinder.jl")
+export RestrictedCylinder
+
 # ---- Multi-compartment composition ----
 include("composition/multi_compartment.jl")
 export MultiCompartmentModel
@@ -46,7 +52,7 @@ export parameter_dictionary_to_array, parameter_array_to_dictionary, get_flat_bo
 
 # ---- Parameter constraints ----
 include("composition/constraints.jl")
-export ConstrainedModel, set_fixed_parameter, set_volume_fraction_unity, set_tortuosity
+export ConstrainedModel, set_fixed_parameter, set_volume_fraction_unity, set_tortuosity, LinkedParameter
 
 # ---- Multi-compartment fitting ----
 include("fitting/nlls.jl")
@@ -65,6 +71,9 @@ export DTIModel, compute_fa, compute_md, compute_ad, compute_rd
 
 include("models/noddi.jl")
 export NODDIModel, kappa_to_odi
+
+include("models/noddi_watson.jl")
+export noddi_watson
 
 # ---- Noise ----
 include("noise.jl")
