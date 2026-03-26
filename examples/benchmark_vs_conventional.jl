@@ -15,20 +15,11 @@ Demo-scale settings below. For production:
   - Run on GPU via LuxCUDA
 """
 
-const ROOT = joinpath(@__DIR__, "..")
-
 using Pkg
-Pkg.activate(ROOT)
+Pkg.activate(joinpath(@__DIR__, ".."))
 
+using DMI
 using Lux, Random, Statistics, LinearAlgebra, Printf, ComponentArrays
-
-include(joinpath(ROOT, "src/models/ball_stick.jl"))
-include(joinpath(ROOT, "src/noise.jl"))
-include(joinpath(ROOT, "src/diffusion/schedule.jl"))
-include(joinpath(ROOT, "src/diffusion/score_net.jl"))
-include(joinpath(ROOT, "src/diffusion/train.jl"))
-include(joinpath(ROOT, "src/diffusion/sample.jl"))
-include(joinpath(ROOT, "src/validation/metrics.jl"))
 
 # ---------------------------------------------------------------------------
 # Conditional Optim.jl loading (not in Project.toml)
@@ -536,7 +527,7 @@ for (mi, mname) in enumerate(method_names)
 end
 Label(fig1[0, :], "Estimated vs True: Scalar Parameters", fontsize=16, font=:bold)
 
-outdir = joinpath(ROOT, "examples", "benchmark_outputs")
+outdir = joinpath(@__DIR__, "benchmark_outputs")
 mkpath(outdir)
 save(joinpath(outdir, "scatter_scalars.png"), fig1, px_per_unit=2)
 println("  Saved scatter_scalars.png")

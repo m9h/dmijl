@@ -9,14 +9,8 @@ Direct port of the JAX implementation -- but with no XLA compilation wall.
 using Pkg
 Pkg.activate(joinpath(@__DIR__, ".."))
 
+using DMI
 using Lux, Random, Statistics, LinearAlgebra, Printf
-
-include("../src/models/ball_stick.jl")
-include("../src/noise.jl")
-include("../src/diffusion/schedule.jl")
-include("../src/diffusion/score_net.jl")
-include("../src/diffusion/train.jl")
-include("../src/diffusion/sample.jl")
 
 # --- Setup ---
 rng = Random.default_rng()

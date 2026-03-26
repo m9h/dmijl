@@ -5,11 +5,12 @@ Benchmark: DDPM (hand-rolled) vs DiffEq EM vs DiffEq adaptive ODE.
 Uses a dummy score function to measure pure solver overhead.
 """
 
-const ROOT = joinpath(@__DIR__, "..")
-include(joinpath(ROOT, "src/diffusion/schedule.jl"))
-include(joinpath(ROOT, "src/diffusion/sample_diffeq.jl"))
+using Pkg
+Pkg.activate(joinpath(@__DIR__, ".."))
 
+using DMI
 using Random, Statistics, LinearAlgebra, Printf
+using DifferentialEquations
 
 # Dummy score function: returns zeros (pure overhead test)
 dummy_score(theta, t, signal) = zeros(Float32, length(theta))

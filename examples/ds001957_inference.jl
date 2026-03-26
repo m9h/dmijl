@@ -13,15 +13,8 @@ Usage:
 using Pkg
 Pkg.activate(joinpath(@__DIR__, ".."))
 
+using DMI
 using Lux, Random, Statistics, LinearAlgebra, Printf, NIfTI, Serialization
-
-include("../src/models/ball_stick.jl")
-include("../src/noise.jl")
-include("../src/pipeline/acquisition.jl")
-include("../src/diffusion/schedule.jl")
-include("../src/diffusion/score_net.jl")
-include("../src/diffusion/train.jl")
-include("../src/diffusion/sample.jl")
 
 # ===========================================================================
 #  Configuration -- edit these or pass via command line

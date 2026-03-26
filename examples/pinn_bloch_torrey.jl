@@ -24,14 +24,12 @@ Run with:
 using Pkg
 Pkg.activate(joinpath(@__DIR__, ".."))
 
+using DMI
 using Random, Statistics, LinearAlgebra, Printf
 using Lux, Optimisers, Zygote
 using MCMRSimulator
 using MRIBuilder
 using CairoMakie
-
-include("../src/pinn/bloch_torrey.jl")
-include("../src/pipeline/mcmr_generator.jl")
 
 # ====================================================================
 # Configuration

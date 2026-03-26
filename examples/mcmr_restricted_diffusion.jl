@@ -22,18 +22,12 @@ Run with:
 using Pkg
 Pkg.activate(joinpath(@__DIR__, ".."))
 
+using DMI
 using Random, Statistics, LinearAlgebra, Printf
 using Lux, Optimisers, Zygote
 using MCMRSimulator
 using MRIBuilder
 using CairoMakie
-
-include("../src/noise.jl")
-include("../src/diffusion/schedule.jl")
-include("../src/diffusion/score_net.jl")
-include("../src/diffusion/train.jl")
-include("../src/diffusion/sample.jl")
-include("../src/pinn/bloch_torrey.jl")
 
 # ====================================================================
 # Configuration
