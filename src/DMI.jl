@@ -12,6 +12,9 @@ module DMI
 using Lux, Random, Statistics, LinearAlgebra
 using ComponentArrays, Optimisers, Zygote
 
+# ---- Shared utilities ----
+include("utils.jl")
+
 # ---- GPU / device utilities ----
 include("gpu.jl")
 export select_device, to_device

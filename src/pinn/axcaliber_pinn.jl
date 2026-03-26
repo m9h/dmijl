@@ -167,14 +167,13 @@ function decode_geometry(raw::AbstractVector)
     R = softplus(raw[1]) * 1e-6 + 0.5e-6     # radius: 0.5-10 μm
     D_intra = softplus(raw[2]) * 1e-9          # 0-3 μm²/ms
     D_extra = softplus(raw[3]) * 1e-9          # 0-3 μm²/ms
-    f_intra = sigmoid(raw[4])                   # 0-1
+    f_intra = _sigmoid(raw[4])                   # 0-1
     mu = raw[5:7]
     mu = mu ./ max(norm(mu), 1e-8)              # unit vector
     return (; R, D_intra, D_extra, f_intra, mu)
 end
 
-sigmoid(x) = 1 / (1 + exp(-x))
-softplus(x) = log(1 + exp(x))
+# sigmoid and softplus defined in src/utils.jl
 
 # ------------------------------------------------------------------ #
 # AxCaliber data structure

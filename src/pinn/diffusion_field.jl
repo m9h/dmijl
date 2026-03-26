@@ -80,7 +80,7 @@ function eval_D(net, ps, st, x::AbstractVector, output_type::Symbol)
     end
 end
 
-softplus(x) = log(1 + exp(x))
+# softplus defined in src/utils.jl
 
 # ------------------------------------------------------------------ #
 # M-field network: (t, x) → M(t, x) complex magnetization

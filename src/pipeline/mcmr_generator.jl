@@ -16,6 +16,7 @@ References:
 
 using Random
 using Statistics
+using MCMRSimulator
 using MRIBuilder: Sequence, DWI, build_sequence
 
 # ------------------------------------------------------------------ #
