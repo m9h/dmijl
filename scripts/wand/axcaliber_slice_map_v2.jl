@@ -9,6 +9,7 @@ then reinitialize parameters per voxel. No repeated JIT.
 using Random, Statistics, LinearAlgebra, Printf, NPZ, JSON, Lux, Optimisers, Zygote
 
 const DMIJL = "/home/mhough/dev/dmijl"
+include(joinpath(DMIJL, "src/utils.jl"))
 include(joinpath(DMIJL, "src/pinn/axcaliber_pinn.jl"))
 
 n_steps = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 2000
