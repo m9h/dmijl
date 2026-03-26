@@ -73,6 +73,11 @@ Key insight: log-space loss (not MSE) is critical for correct MD.
 | **Diffusion tensor field** | Neural field + Stejskal-Tanner | FA=0.42, MD correct |
 | **Score-based posteriors** | Denoising score matching + DDPM | 12.8 deg orientation error |
 | **Forward model surrogate** | Supervised MLP regression | 0.96% error, spec passed |
+| **Mixture Density Networks** | Gaussian mixture posteriors (Lux.jl) | Tested |
+| **Simulation-Based Calibration** | Rank histogram diagnostics (Talts et al.) | Tested |
+| **Conformal prediction** | Distribution-free coverage guarantees | Tested |
+| **OOD detection** | Reconstruction error + Mahalanobis + entropy | Tested |
+| **Posterior predictive checks** | Model adequacy diagnostics | Tested |
 | **Native SDE/ODE samplers** | DifferentialEquations.jl | EM 21k samples/s |
 
 ---
@@ -101,7 +106,7 @@ Key insight: log-space loss (not MSE) is critical for correct MD.
 <td>
 <code>fit_mcm</code> (NLLS)<br>
 <code>ScoreNetwork</code> (FiLM)<br>
-<code>train_score!</code><br>
+<code>MixtureDensityNetwork</code><br>
 <code>sample_posterior</code>
 </td>
 </tr>
@@ -123,9 +128,9 @@ Key insight: log-space loss (not MSE) is critical for correct MD.
 <code>extract_maps</code> (FA, MD)
 </td>
 <td>
+SBC · Conformal · OOD · PPC<br>
 KomaMRI oracle<br>
-Microstructure.jl compat<br>
-<code>angular_error</code> / <code>rmse</code>
+Microstructure.jl compat
 </td>
 </tr>
 </table>
