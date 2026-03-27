@@ -86,6 +86,9 @@ export SBIConfig
 include("pipeline/simulator.jl")
 export ModelSimulator, sample_prior, simulate, add_noise, sample_and_simulate
 
+include("pipeline/augmentation.jl")
+export FiberLayout, add_variable_snr_noise, normalize_b0, fix_label_switching, augment_training_batch
+
 # ---- Score-based diffusion posterior ----
 include("diffusion/schedule.jl")
 export VPSchedule, alpha_bar, noise_and_signal
@@ -106,6 +109,18 @@ export sample_posterior_diffeq, sample_posterior_ode
 # ---- Mixture Density Network (amortized inference) ----
 include("inference/mdn.jl")
 export build_mdn, mdn_forward, mdn_loss, train_mdn!, sample_mdn
+
+# ---- Deep Ensembles ----
+include("inference/ensemble.jl")
+export train_ensemble, ensemble_predict, ensemble_mean, ensemble_std, ensemble_sample
+
+# ---- MCMC posterior sampling ----
+include("inference/mcmc.jl")
+export rician_loglikelihood, mcmc_sample, mcmc_summary, log_besseli0
+
+# ---- Variational Inference (amortized approximate posterior) ----
+include("inference/variational.jl")
+export build_vi_net, vi_forward, elbo_loss, train_vi!, sample_vi
 
 # ---- Bloch-Torrey neural surrogate / PINN ----
 include("pinn/bloch_torrey.jl")

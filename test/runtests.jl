@@ -20,7 +20,11 @@ using DMI
     include("test_restricted.jl")
     include("test_noddi.jl")
     include("test_mdn.jl")
+    include("test_ensemble.jl")
+    include("test_mcmc.jl")
+    include("test_variational.jl")
     include("test_sbc.jl")
     include("test_conformal.jl")
     include("test_ood_ppc.jl")
+    include("test_augmentation.jl")
 end
