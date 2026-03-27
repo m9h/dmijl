@@ -27,4 +27,7 @@ using DMI
     include("test_conformal.jl")
     include("test_ood_ppc.jl")
     include("test_augmentation.jl")
+    include("test_properties.jl")
+    include("test_golden.jl")
+    include("test_adversarial.jl")
 end
