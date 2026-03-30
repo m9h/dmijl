@@ -95,6 +95,20 @@ export load_multi_echo, robust_brain_mask, correct_bias_field,
        unwrap_phase, voxel_quality, compute_b0, compute_t2star,
        PhaseResult, process_phase, save_phase_result
 
+# ---- Optimal Experimental Design (Phase 3) ----
+include("design/types.jl")
+export DesignSpace, DesignResult, OEDProblem
+
+include("design/fim.jl")
+export jacobian_signal, fisher_information, expected_fim, crlb, rician_fim_correction
+
+include("design/optimality.jl")
+export d_optimality, a_optimality, e_optimality, weighted_a_optimality, optimality_criterion
+
+include("design/constraints.jl")
+export GYROMAGNETIC_RATIO, max_bvalue, required_gradient, is_feasible,
+       electrostatic_directions, compare_protocols
+
 # ---- Score-based diffusion posterior ----
 include("diffusion/schedule.jl")
 export VPSchedule, alpha_bar, noise_and_signal
