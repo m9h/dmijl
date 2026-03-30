@@ -89,6 +89,12 @@ export ModelSimulator, sample_prior, simulate, add_noise, sample_and_simulate
 include("pipeline/augmentation.jl")
 export FiberLayout, add_variable_snr_noise, normalize_b0, fix_label_switching, augment_training_batch
 
+# ---- Phase processing (ROMEO + MriResearchTools) ----
+include("pipeline/phase.jl")
+export load_multi_echo, robust_brain_mask, correct_bias_field,
+       unwrap_phase, voxel_quality, compute_b0, compute_t2star,
+       PhaseResult, process_phase, save_phase_result
+
 # ---- Score-based diffusion posterior ----
 include("diffusion/schedule.jl")
 export VPSchedule, alpha_bar, noise_and_signal
