@@ -32,4 +32,5 @@ using DMI
     include("test_adversarial.jl")
     include("test_phase.jl")
     include("test_oed.jl")
+    include("test_phase4.jl")
 end

@@ -45,6 +45,12 @@ export SphereGPD
 include("compartments/restricted_cylinder.jl")
 export RestrictedCylinder
 
+include("compartments/plane.jl")
+export PlaneCallaghan
+
+include("compartments/epg.jl")
+export EPGCompartment, epg_signal
+
 # ---- Multi-compartment composition ----
 include("composition/multi_compartment.jl")
 export MultiCompartmentModel
@@ -57,6 +63,9 @@ export ConstrainedModel, set_fixed_parameter, set_volume_fraction_unity, set_tor
 # ---- Multi-compartment fitting ----
 include("fitting/nlls.jl")
 export fit_mcm, fit_mcm_batch
+
+include("fitting/algebraic_init.jl")
+export dti_init, ball_stick_init, noddi_init
 
 # ---- Orientation distributions ----
 include("distributions/watson.jl")
@@ -201,6 +210,9 @@ export cross_validate_compartments, load_for_dfield
 
 include("validation/koma_oracle.jl")
 export validate_free_diffusion_koma, validate_signal_properties_koma
+
+include("validation/spindoctor_oracle.jl")
+export validate_restricted_cylinder_spindoctor, SpinDoctorValidationResult
 
 # ---- Simulation-Based Calibration ----
 include("validation/sbc.jl")

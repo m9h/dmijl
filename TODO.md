@@ -22,6 +22,10 @@
 - [x] SpinDoctor.jl modernized for Julia 1.12 and integrated as FEM oracle
 - [x] QMT MTR maps computed for sub-08033 (10 MT conditions, normalized by MT-off)
 - [ ] QMT generalized Bloch fitting awaits CUBRIC TRF/pulse shape confirmation
+- [x] EPG compartment: multi-echo CPMG signal with B1 inhomogeneity (Weigel 2015)
+- [x] PlaneCallaghan compartment: restricted diffusion between parallel planes
+- [x] Algebraic initializers: DTI-based init for Ball+Stick and NODDI fitting
+- [x] SpinDoctor validation oracle scaffold (placeholder FEM solve)
 
 ---
 
