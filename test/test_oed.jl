@@ -136,6 +136,43 @@ using Random
         @test all(dirs[:, 3] .>= -1e-10)
     end
 
+    @testset "Protocol optimization" begin
+        ball = G1Ball(lambda_iso=1.7e-9)
+        stick = C1Stick(lambda_par=1.7e-9, mu=[0.0, 0.0, 1.0])
+        model = MultiCompartmentModel(ball, stick)
+
+        problem = OEDProblem(
+            model=model,
+            design_space=DesignSpace(n_measurements=20, n_b0=3, G_max=0.08),
+            criterion=:D,
+            sigma=0.02,
+        )
+
+        result = optimize_protocol(problem; n_restarts=2, max_iter=50)
+        @test result isa DesignResult
+        @test length(result.acquisition.bvalues) == 20
+        @test result.criterion_value > -Inf
+        @test all(result.crlb .> 0)
+        # b=0 images should be at the start
+        @test all(result.acquisition.bvalues[1:3] .== 0)
+        # Optimized b-values should be within hardware limits
+        b_max = max_bvalue(0.08, 5e-3, 10e-3)
+        @test all(result.acquisition.bvalues .<= b_max * 1.01)
+    end
+
+    @testset "Standard protocol recipes" begin
+        acq_hcp = hcp_protocol()
+        @test length(acq_hcp.bvalues) == 96  # 6 b0 + 90 DW
+        @test count(==(0.0), acq_hcp.bvalues) == 6
+
+        acq_noddi = noddi_protocol()
+        @test length(acq_noddi.bvalues) == 66  # 6 b0 + 60 DW
+
+        acq_ax = axon_diameter_protocol(G_max=0.3)
+        @test length(acq_ax.bvalues) == 36  # 6 b0 + 30 DW
+        @test maximum(acq_ax.bvalues) > 0
+    end
+
     @testset "Compare protocols" begin
         ball = G1Ball(lambda_iso=1.7e-9)
         stick = C1Stick(lambda_par=1.7e-9, mu=[0.0, 0.0, 1.0])

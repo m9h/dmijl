@@ -109,6 +109,12 @@ include("design/constraints.jl")
 export GYROMAGNETIC_RATIO, max_bvalue, required_gradient, is_feasible,
        electrostatic_directions, compare_protocols
 
+include("design/optimize.jl")
+export optimize_protocol
+
+include("design/protocols.jl")
+export hcp_protocol, noddi_protocol, axon_diameter_protocol
+
 # ---- Score-based diffusion posterior ----
 include("diffusion/schedule.jl")
 export VPSchedule, alpha_bar, noise_and_signal
