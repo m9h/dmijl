@@ -115,6 +115,12 @@ export optimize_protocol
 include("design/protocols.jl")
 export hcp_protocol, noddi_protocol, axon_diameter_protocol
 
+include("design/bayesian_oed.jl")
+export eig_pce, eig_variational, mdn_log_density
+
+include("design/sequential.jl")
+export CandidateMeasurement, generate_candidates, sequential_design
+
 # ---- Score-based diffusion posterior ----
 include("diffusion/schedule.jl")
 export VPSchedule, alpha_bar, noise_and_signal

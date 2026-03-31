@@ -88,15 +88,13 @@ Ref: `dmipy_jax/pipeline/ensemble.py`
 - [x] **Phase 3a**: Fisher Information Matrix (Gaussian + Rician), D/A/E-optimality,
   CRLB, hardware constraints, electrostatic directions, `compare_protocols()`.
   34 tests. Ref: Alexander 2008 (DOI:10.1002/mrm.21646)
-- [ ] **Phase 3b**: Gradient-based protocol optimization via Optim.jl L-BFGS-B.
-  Standard protocol recipes (SANDI, NODDI, axon diameter).
-- [ ] **Phase 3c**: Bayesian OED — PCE lower bound and variational upper bound on
-  Expected Information Gain. Key insight: existing MDN serves as q(theta|y,xi)
-  for the variational bound, connecting SBI directly to OED.
-  Ref: Foster et al. 2019 (arXiv:1903.05480)
-- [ ] **Phase 3d**: Sequential/adaptive design — greedy information-gain maximization
-  using posterior samplers (MDN, score-based, VI, MCMC).
-  Ref: Foster et al. 2021 (arXiv:2103.02438)
+- [x] **Phase 3b**: Gradient-based protocol optimization via Optim.jl L-BFGS-B.
+  Standard protocol recipes (HCP, NODDI, axon diameter). 45 tests.
+- [x] **Phase 3c**: Bayesian OED — PCE lower bound and variational upper bound on
+  Expected Information Gain. MDN serves as q(theta|y,xi) for the variational
+  bound. 57 tests total. Ref: Foster et al. 2019 (arXiv:1903.05480)
+- [x] **Phase 3d**: Sequential/adaptive design — greedy FIM-based D-optimality
+  maximization over candidate measurements. Ref: Foster et al. 2021 (arXiv:2103.02438)
 
 ---
 

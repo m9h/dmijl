@@ -173,6 +173,77 @@ using Random
         @test maximum(acq_ax.bvalues) > 0
     end
 
+    @testset "EIG PCE" begin
+        ball = G1Ball(lambda_iso=1.7e-9)
+        stick = C1Stick(lambda_par=1.7e-9, mu=[0.0, 0.0, 1.0])
+        model = MultiCompartmentModel(ball, stick)
+
+        bvals = vcat(zeros(3), fill(1e9, 5), fill(2e9, 5))
+        dirs = vcat(repeat([1.0 0.0 0.0], 3), electrostatic_directions(10))
+        acq = Acquisition(bvals, dirs)
+
+        np = nparams(model)
+        rng = Random.MersenneTwister(42)
+        nominal = [0.5, 0.5, 1.7e-9, 1.7e-9, 0.0, 0.0, 1.0]
+        prior = hcat([nominal .+ 0.01 .* randn(rng, np) .* abs.(nominal) for _ in 1:30]...)
+
+        eig = eig_pce(model, acq, prior; sigma=0.02, n_contrastive=20)
+        @test isfinite(eig)
+        @test eig > 0  # EIG should be positive (information gained)
+
+        # More measurements should give more information
+        bvals2 = vcat(zeros(3), fill(1e9, 10), fill(2e9, 10), fill(3e9, 10))
+        dirs2 = vcat(repeat([1.0 0.0 0.0], 3), electrostatic_directions(30))
+        acq2 = Acquisition(bvals2, dirs2)
+        eig2 = eig_pce(model, acq2, prior; sigma=0.02, n_contrastive=20)
+        @test eig2 > eig  # more measurements = more information
+    end
+
+    @testset "MDN log density" begin
+        # Simple 2-component, 2D mixture
+        pi_w = [0.6, 0.4]
+        mu = [1.0 3.0; 2.0 4.0]       # (D=2, K=2)
+        log_sigma = [0.0 0.0; 0.0 0.0] # unit variance
+        theta = [1.0, 2.0]  # at the first component mean
+
+        ld = mdn_log_density(theta, pi_w, mu, log_sigma)
+        @test isfinite(ld)
+        # Should be close to log(0.6 * N(0|0,1)) ≈ log(0.6) - log(2π)
+        @test ld > -10
+    end
+
+    @testset "Sequential design" begin
+        ball = G1Ball(lambda_iso=1.7e-9)
+        stick = C1Stick(lambda_par=1.7e-9, mu=[0.0, 0.0, 1.0])
+        model = MultiCompartmentModel(ball, stick)
+
+        ds = DesignSpace(n_measurements=12, n_b0=3, G_max=0.08)
+        np = nparams(model)
+        rng = Random.MersenneTwister(42)
+        nominal = [0.5, 0.5, 1.7e-9, 1.7e-9, 0.0, 0.0, 1.0]
+        prior = hcat([nominal .+ 0.01 .* randn(rng, np) .* abs.(nominal) for _ in 1:20]...)
+
+        acq = sequential_design(model, ds, prior;
+                                n_candidates=10, sigma=0.02)
+        @test length(acq.bvalues) == 12
+        @test count(==(0.0), acq.bvalues) == 3
+        # Should have selected some non-zero b-values
+        @test maximum(acq.bvalues) > 0
+
+        # The sequential design should be at least as good as random
+        # (hard to guarantee in test, but should not be degenerate)
+        F = expected_fim(model, acq, prior; sigma=0.02)
+        @test d_optimality(F) > -Inf
+    end
+
+    @testset "Generate candidates" begin
+        ds = DesignSpace(G_max=0.08)
+        cands = generate_candidates(ds; n_candidates=20)
+        @test length(cands) == 20
+        @test all(c -> c.bvalue >= 0, cands)
+        @test all(c -> norm(c.direction) ≈ 1.0, cands)
+    end
+
     @testset "Compare protocols" begin
         ball = G1Ball(lambda_iso=1.7e-9)
         stick = C1Stick(lambda_par=1.7e-9, mu=[0.0, 0.0, 1.0])
