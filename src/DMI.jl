@@ -88,6 +88,10 @@ export noddi_watson
 include("noise.jl")
 export add_rician_noise
 
+# ---- BIDS Data Loaders ----
+include("pipeline/bids.jl")
+export BIDSSubject, load_dwi, load_megre, load_qmt, find_bids_subjects
+
 # ---- Pipeline ----
 include("pipeline/config.jl")
 export SBIConfig

@@ -117,26 +117,58 @@ end
 """
     _spindoctor_cylinder_signal(R, D, delta, Delta, b) -> Float64
 
-Compute restricted cylinder signal using SpinDoctor's analytical
-matrix formalism (eigendecomposition) for a single cylinder.
+Compute restricted cylinder signal using SpinDoctor FEM Bloch-Torrey PDE.
 
-This avoids the full FEM mesh and gives the exact analytical solution
-for comparison with GPD approximations.
+Units: R in metres, D in m²/s, delta/Delta in seconds, b in s/m².
+SpinDoctor uses micrometres internally, so we convert at the boundary.
+
+Returns the signal attenuation S/S₀.
 """
 function _spindoctor_cylinder_signal(R::Float64, D::Float64,
                                       delta::Float64, Delta::Float64, b::Float64)
-    # For now, use our own Van Gelderen as placeholder until SpinDoctor's
-    # CylinderSetup + solve pipeline is wired up.
-    # TODO: Replace with actual SpinDoctor FEM solve:
-    #   setup = CylinderSetup(; R, D)
-    #   mesh = create_geometry(setup)
-    #   model = Model(; mesh, D=[D*I(3)])
-    #   matrices = assemble_matrices(model)
-    #   gradient = PGSE(delta, Delta)
-    #   laplace = Laplace(; model, matrices)
-    #   mf = MatrixFormalism(; model, matrices, laplace, n_eig=50)
-    #   signal = solve(mf, gradient)
-    #
-    # Placeholder: return Van Gelderen (will be replaced)
-    return van_gelderen_cylinder(R, D, delta, Delta, b)
+    # Convert to SpinDoctor units: µm, ms, µm²/ms
+    R_um = R * 1e6
+    D_um = D * 1e9  # m²/s → µm²/ms
+    delta_us = delta * 1e6  # s → µs (SpinDoctor uses µs for time)
+    Delta_us = Delta * 1e6
+
+    # SpinDoctor gyromagnetic ratio in µm-ms-T units
+    γ_sd = 2.67513e-4  # µm⁻¹ ms⁻¹ T⁻¹
+
+    try
+        @eval using SpinDoctor
+        @eval using LinearAlgebra: I
+
+        setup = @eval SpinDoctor.CylinderSetup(;
+            ncell=1, rmin=$R_um, rmax=$R_um,
+            dmin=$(R_um*0.1), dmax=$(R_um*0.1),
+            height=$(R_um*5))
+
+        coeffs = @eval SpinDoctor.coefficients($setup;
+            D = (; cell = [$D_um * I(3)]),
+            T₂ = (; cell = [Inf]),
+            ρ = (; cell = [1.0]),
+            κ = (; cell_interfaces = zeros(0), cell_boundaries = [0.0]),
+            γ = $γ_sd)
+
+        mesh, = @eval SpinDoctor.create_geometry($setup)
+        model = @eval SpinDoctor.Model(; mesh=$mesh, $coeffs...)
+        matrices = @eval SpinDoctor.assemble_matrices($model)
+
+        profile = @eval SpinDoctor.PGSE($delta_us, $Delta_us)
+        dir = [1.0, 0.0, 0.0]
+        g = sqrt(b / SpinDoctor.int_F²(profile)) / γ_sd
+        gradient = @eval SpinDoctor.ScalarGradient($dir, $profile, $g)
+
+        btpde = @eval SpinDoctor.BTPDE(; model=$model, matrices=$matrices)
+        ξ = @eval SpinDoctor.solve($btpde, $gradient)
+        S = abs(@eval SpinDoctor.compute_signal($matrices.M, $ξ))
+
+        # Normalize by b=0 signal
+        S0 = real(sum(matrices.M * SpinDoctor.initial_conditions(model)))
+        return S / S0
+    catch e
+        @warn "SpinDoctor FEM solve failed, falling back to Van Gelderen" exception=e
+        return van_gelderen_cylinder(R, D, delta, Delta, b)
+    end
 end

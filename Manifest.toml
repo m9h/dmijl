@@ -2,7 +2,7 @@
 
 julia_version = "1.12.4"
 manifest_format = "2.0"
-project_hash = "244c16eb74f02d2f001f26be37add5eb61f87165"
+project_hash = "a65998cc5f35b17240f1826fb21951167d8fd04d"
 
 [[deps.ADTypes]]
 git-tree-sha1 = "f7304359109c768cf32dc5fa2d371565bb63b68a"
@@ -735,7 +735,7 @@ uuid = "7bc98958-0e37-5d67-a6ac-a3a19030071a"
 version = "1.0.5+0"
 
 [[deps.DMI]]
-deps = ["CUDA", "CairoMakie", "ComponentArrays", "DelimitedFiles", "DifferentialEquations", "ForwardDiff", "LinearAlgebra", "LsqFit", "Lux", "LuxCUDA", "MCMRSimulator", "MRIBuilder", "MriResearchTools", "NIfTI", "Optimisers", "Printf", "ROMEO", "Random", "SciMLSensitivity", "SpecialFunctions", "SpinDoctor", "Statistics", "Zygote"]
+deps = ["BlochSimulators", "CUDA", "CairoMakie", "ComponentArrays", "DelimitedFiles", "DifferentialEquations", "ForwardDiff", "LinearAlgebra", "LsqFit", "Lux", "LuxCUDA", "MCMRSimulator", "MRIBuilder", "MRIgeneralizedBloch", "MriResearchTools", "NIfTI", "Optim", "Optimisers", "Printf", "ROMEO", "Random", "SciMLSensitivity", "SpecialFunctions", "SpinDoctor", "Statistics", "Zygote"]
 path = "."
 uuid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
 version = "0.1.0"
@@ -1776,6 +1776,18 @@ version = "1.4.0"
     JSONArrowExt = ["ArrowTypes"]
 
     [deps.JSON.weakdeps]
+    ArrowTypes = "31f734f8-188a-4ce0-8406-c8a06bd891cd"
+
+[[deps.JSON3]]
+deps = ["Dates", "Mmap", "Parsers", "PrecompileTools", "StructTypes", "UUIDs"]
+git-tree-sha1 = "411eccfe8aba0814ffa0fdf4860913ed09c34975"
+uuid = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+version = "1.14.3"
+
+    [deps.JSON3.extensions]
+    JSON3ArrowExt = ["ArrowTypes"]
+
+    [deps.JSON3.weakdeps]
     ArrowTypes = "31f734f8-188a-4ce0-8406-c8a06bd891cd"
 
 [[deps.Jieko]]
@@ -3892,6 +3904,12 @@ weakdeps = ["Adapt", "GPUArraysCore", "KernelAbstractions", "LinearAlgebra", "Sp
 git-tree-sha1 = "c581be48ae1cbf83e899b14c07a807e1787512cc"
 uuid = "53d494c1-5632-5724-8f4c-31dff12d585f"
 version = "0.3.1"
+
+[[deps.StructTypes]]
+deps = ["Dates", "UUIDs"]
+git-tree-sha1 = "159331b30e94d7b11379037feeb9b690950cace8"
+uuid = "856f2bd8-1eba-4b0a-8007-ebc267875bd4"
+version = "1.11.0"
 
 [[deps.StructUtils]]
 deps = ["Dates", "UUIDs"]

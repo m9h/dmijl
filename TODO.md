@@ -129,10 +129,10 @@ DTI-based initialization for NLLS fitting. Faster convergence, fewer local minim
 Ref: `dmipy_jax/fitting/algebraic_initializers.py`
 
 ### BIDS Data Loaders
-Streamlined loading for BIDS, HCP, WAND datasets.
-Note: WAND mcDESPOT VFA data (ses-02) has per-volume flip angles missing
-from BIDS sidecars — need CUBRIC protocol documentation to resolve.
-Ref: `dmipy_jax/io/`
+- [x] Generic BIDS loaders: load_dwi, load_megre, load_qmt, find_bids_subjects
+  Handles DWI (bval/bvec + NIfTI), MEGRE (per-echo + JSON TEs), QMT (per-volume
+  metadata). Validated on WAND sub-08033. 20 tests.
+- [ ] WAND mcDESPOT VFA per-volume flip angles still missing from BIDS sidecars
 
 ### PlaneCallaghan Compartment
 Restricted diffusion between parallel planes. Completes the geometry set.
