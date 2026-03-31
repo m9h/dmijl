@@ -79,6 +79,9 @@ Key insight: log-space loss (not MSE) is critical for correct MD.
 | **OOD detection** | Reconstruction error + Mahalanobis + entropy | Tested |
 | **Posterior predictive checks** | Model adequacy diagnostics | Tested |
 | **Native SDE/ODE samplers** | DifferentialEquations.jl | EM 21k samples/s |
+| **Phase processing** | ROMEO unwrapping, B0 mapping, T2*/R2* (MriResearchTools) | Validated on WAND 7T MEGRE |
+| **Optimal Experimental Design** | Fisher information, D/A/E-optimality, CRLB | Phase 3a complete |
+| **FEM Bloch-Torrey** | SpinDoctor.jl for validation + future differentiable inversion | Integrated |
 
 ---
 
@@ -130,7 +133,32 @@ Key insight: log-space loss (not MSE) is critical for correct MD.
 <td>
 SBC · Conformal · OOD · PPC<br>
 KomaMRI oracle<br>
+SpinDoctor.jl FEM oracle<br>
 Microstructure.jl compat
+</td>
+</tr>
+<tr>
+<th>Phase Processing</th>
+<th>Experimental Design</th>
+<th>Simulation Backends</th>
+</tr>
+<tr>
+<td>
+<code>process_phase</code><br>
+ROMEO unwrapping<br>
+B0/T2*/R2* mapping<br>
+Brain masking + bias correction
+</td>
+<td>
+<code>fisher_information</code><br>
+<code>crlb</code> (Cramer-Rao)<br>
+D/A/E-optimality<br>
+<code>compare_protocols</code>
+</td>
+<td>
+MCMRSimulator (Monte Carlo)<br>
+KomaMRI (Bloch sequences)<br>
+SpinDoctor (FEM Bloch-Torrey)
 </td>
 </tr>
 </table>
@@ -239,6 +267,45 @@ The two projects share:
 
 ---
 
+## Simulation Backends
+
+DMI.jl integrates three complementary physics simulation backends, each
+providing independent ground truth for different aspects of the diffusion
+signal:
+
+| Backend | Method | Strengths | Use in DMI.jl |
+|:--------|:-------|:----------|:--------------|
+| **[MCMRSimulator.jl](https://github.com/MichielCottaar/MCMRSimulator.jl)** | Monte Carlo random walk | Fast geometry sweeps, packed substrates | Training data generation |
+| **[KomaMRI.jl](https://github.com/JuliaHealth/KomaMRI.jl)** | Bloch equation simulation | Arbitrary pulse sequences, GPU | Sequence-level signal validation |
+| **[SpinDoctor.jl](https://github.com/m9h/SpinDoctor.jl)** | FEM Bloch-Torrey PDE | Per-compartment D, membrane permeability, neuron morphologies | Ground truth for restricted diffusion |
+
+### SpinDoctor.jl and the path to differentiable microstructure inversion
+
+SpinDoctor solves the Bloch-Torrey partial differential equation on
+tetrahedral FEM meshes, giving deterministic (noise-free) diffusion signals
+for arbitrary 3D tissue geometries. We maintain a
+[modernized fork](https://github.com/m9h/SpinDoctor.jl) with Julia 1.12
+compatibility, Makie as an optional extension, and split ODE packages.
+
+This is the same core physics as
+[ReMiDi](https://github.com/BioMedAI-UCSC/ReMiDi) (Khole et al. 2025,
+BioMedAI-UCSC) and its successor
+[Spinverse](https://arxiv.org/abs/2603.04638) (2026), which implement a
+**differentiable** PyTorch version of SpinDoctor to recover 3D axonal
+geometries (bending, beading, fanning fibers) directly from dMRI signals via
+backpropagation through the physics. Jing-Rebecca Li (INRIA), the original
+SpinDoctor author, is a co-author on both.
+
+The Julia ecosystem is well-positioned to replicate this capability: Julia's
+AD tools (Enzyme.jl, Zygote.jl) can differentiate through the FEM assembly
+and ODE solve natively, potentially with less engineering effort than the
+PyTorch re-implementation. Making SpinDoctor.jl differentiable end-to-end is
+a natural direction for DMI.jl, connecting simulation-based inference (our
+score-based posteriors and MDNs) with mesh-level microstructure
+reconstruction.
+
+---
+
 ## Key Dependencies
 
 | Package | Role |
@@ -248,6 +315,9 @@ The two projects share:
 | [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) | SDE/ODE solvers for reverse diffusion |
 | [KomaMRI.jl](https://github.com/JuliaHealth/KomaMRI.jl) | Bloch simulation validation oracle |
 | [MCMRSimulator.jl](https://github.com/MichielCottaar/MCMRSimulator.jl) | Monte Carlo forward simulation (Cottaar/Jbabdi/Miller, FMRIB) |
+| [SpinDoctor.jl](https://github.com/m9h/SpinDoctor.jl) | FEM Bloch-Torrey PDE (Li et al., NeuroImage 2019) |
+| [ROMEO.jl](https://github.com/korbinian90/ROMEO.jl) | Phase unwrapping (Dymerska et al., MRM 2020) |
+| [MriResearchTools.jl](https://github.com/korbinian90/MriResearchTools.jl) | Masking, bias correction, T2*, coil combination |
 | [Microstructure.jl](https://github.com/TingGong/Microstructure.jl) | Cross-validation reference (Ting Gong, MGH/Martinos) |
 
 ---
