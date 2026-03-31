@@ -18,7 +18,10 @@
 - [x] Documenter.jl docs + GitHub Actions CI
 - [x] ROMEO + MriResearchTools phase processing pipeline (WAND 7T MEGRE validated)
 - [x] Phase 3a OED: FIM, D/A/E-optimality, CRLB, protocol comparison (34 tests)
+- [x] Phase 3b OED: protocol optimization (Optim.jl L-BFGS-B), standard recipes (45 tests)
 - [x] SpinDoctor.jl modernized for Julia 1.12 and integrated as FEM oracle
+- [x] QMT MTR maps computed for sub-08033 (10 MT conditions, normalized by MT-off)
+- [ ] QMT generalized Bloch fitting awaits CUBRIC TRF/pulse shape confirmation
 
 ---
 
