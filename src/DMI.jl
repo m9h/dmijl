@@ -176,6 +176,16 @@ include("pinn/axcaliber_pinn.jl")
 export van_gelderen_cylinder, axcaliber_signal
 export AxCaliberData, build_axcaliber_pinn, train_axcaliber_pinn!, decode_geometry
 
+# ---- FEM Bloch-Torrey (SpinDoctor-based) ----
+include("fem/forward.jl")
+export FEMGeometry, build_fem_cylinder, fem_signal, fem_cylinder_signal
+
+include("fem/differentiable.jl")
+export FEMSignalCache, build_fem_cache, fem_signal_gradient, fem_axcaliber_signal
+
+include("fem/fit.jl")
+export fit_fem_axcaliber
+
 # ---- Non-parametric diffusion field recovery ----
 include("pinn/diffusion_field.jl")
 export DiffusionFieldProblem, solve_diffusion_field, extract_maps

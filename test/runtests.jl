@@ -34,4 +34,5 @@ using DMI
     include("test_oed.jl")
     include("test_phase4.jl")
     include("test_bids.jl")
+    include("test_fem.jl")
 end

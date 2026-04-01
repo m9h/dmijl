@@ -26,6 +26,9 @@
 - [x] PlaneCallaghan compartment: restricted diffusion between parallel planes
 - [x] Algebraic initializers: DTI-based init for Ball+Stick and NODDI fitting
 - [x] SpinDoctor validation oracle scaffold (placeholder FEM solve)
+- [x] FEM Bloch-Torrey forward model: build_fem_cylinder, fem_signal, fem_cylinder_signal
+- [x] Differentiable FEM: fem_signal_gradient, fem_axcaliber_signal
+- [x] FEM-based AxCaliber fitting: fit_fem_axcaliber (Optim.jl)
 
 ---
 
