@@ -186,6 +186,39 @@ export FEMSignalCache, build_fem_cache, fem_signal_gradient, fem_axcaliber_signa
 include("fem/fit.jl")
 export fit_fem_axcaliber
 
+# ---- MR-ARFI Simulation (openlifu + KomaMRI) ----
+include("arfi/types.jl")
+export AcousticProperties, TissueMRProperties, ARFISequenceParams, TUSSolution, ARFIResult
+
+include("arfi/tissue_properties.jl")
+export ACOUSTIC_TABLE, MR_TABLE, SHEAR_TABLE,
+       map_labels_to_acoustic, map_labels_to_shear_modulus, map_labels_to_mr,
+       db_cm_to_neper_m, neper_m_to_db_cm
+
+include("arfi/radiation_force.jl")
+export compute_radiation_force, compute_radiation_force_from_db
+
+include("arfi/displacement.jl")
+export solve_displacement_spectral
+
+include("arfi/forward.jl")
+export predict_arfi_phase, recover_displacement_from_phase,
+       arfi_encoding_coefficient, arfi_encoding_sensitivity,
+       simulate_arfi_analytical
+
+include("arfi/io.jl")
+export load_tus_solution, compute_radiation_force_from_solution
+
+include("arfi/koma_arfi.jl")
+export build_arfi_phantom, build_arfi_sequence,
+       simulate_arfi_koma, validate_arfi_single_spin
+
+include("arfi/differentiable.jl")
+export arfi_forward_differentiable, arfi_phase_loss, verify_arfi_gradient
+
+include("arfi/fit.jl")
+export optimize_msg_params, fit_shear_modulus
+
 # ---- Non-parametric diffusion field recovery ----
 include("pinn/diffusion_field.jl")
 export DiffusionFieldProblem, solve_diffusion_field, extract_maps
